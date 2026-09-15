@@ -13,13 +13,27 @@ import kbRouter from "./routes/kb.js";
 import dashboardRouter from "./routes/dashboard.js";
 
 const app = express();
-app.use(helmet());
+// CORP must allow cross-origin: this is a cross-origin API by design
+// (Vercel frontend -> Render backend). Helmet's default "same-origin"
+// makes browsers block API responses even when CORS headers are correct.
+app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 app.use(morgan("dev"));
 app.use(express.json({ limit: "1mb" }));
 const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:5173").split(",").map((s) => s.trim()).filter(Boolean);
+const vercelPattern = /^https:\/\/[a-z0-9-]+\.vercel\.app$/i;
+const localhostPattern = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i;
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: (origin, cb) => {
+      // No Origin header (curl, health checks, mobile apps) — allow.
+      if (!origin) return cb(null, true);
+      if (allowedOrigins.includes(origin) || vercelPattern.test(origin) || localhostPattern.test(origin)) {
+        return cb(null, true);
+      }
+      const err = new Error(`CORS blocked for origin ${origin}`);
+      err.status = 403;
+      return cb(err);
+    },
     credentials: true,
   })
 );
@@ -41,7 +55,7 @@ const PORT = process.env.PORT || 5000;
 connectDb(process.env.MONGO_URI).then(() => {
   app.listen(PORT, () => {
     console.log(`RicozServe API listening on :${PORT} (mode: ${isDbConnected() ? "mongo" : "memory"})`);
-    console.log(`CORS allowed origins: ${allowedOrigins.join(", ")}`);
+    console.log(`CORS allowed origins: ${allowedOrigins.join(", ")} (+ https://*.vercel.app, http://localhost:*)`);
     if (!process.env.CLIENT_URL && process.env.NODE_ENV === "production") {
       console.warn("WARNING: CLIENT_URL is unset in production — browsers on your deployed frontend will be blocked by CORS. Set CLIENT_URL to your Vercel URL (comma-separated for multiple).");
     }
