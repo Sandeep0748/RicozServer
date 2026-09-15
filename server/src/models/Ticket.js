@@ -12,7 +12,8 @@ const messageSchema = new mongoose.Schema(
 
 const ticketSchema = new mongoose.Schema(
   {
-    ticketId: { type: String, unique: true, index: true },
+    ticketId: { type: String, index: true },
+    orgId: { type: mongoose.Schema.Types.ObjectId, ref: "Organization", index: true },
     subject: { type: String, required: true, trim: true },
     description: { type: String, default: "" },
     customer: { type: mongoose.Schema.Types.ObjectId, ref: "Customer" },
@@ -33,5 +34,11 @@ const ticketSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Ticket numbers restart per workspace (RC-1043 in every new org is normal
+// SaaS behaviour, like Freshdesk). Uniqueness is per-org, not global.
+ticketSchema.index({ orgId: 1, ticketId: 1 }, { unique: true });
+ticketSchema.index({ orgId: 1, status: 1 });
+ticketSchema.index({ orgId: 1, updatedAt: -1 });
 
 export default mongoose.models.Ticket || mongoose.model("Ticket", ticketSchema);

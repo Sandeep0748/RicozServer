@@ -1,4 +1,5 @@
 import { Router } from "express";
+import mongoose from "mongoose";
 import Ticket from "../models/Ticket.js";
 import { isDbConnected } from "../config/db.js";
 import { protect } from "../middleware/auth.js";
@@ -13,17 +14,19 @@ router.use(protect);
 // GET /api/dashboard/summary
 router.get(
   "/summary",
-  asyncHandler(async (_req, res) => {
+  asyncHandler(async (req, res) => {
+    const orgId = req.orgId;
     if (isDbConnected()) {
       const [open, pending, resolved, breached, recent] = await Promise.all([
-        Ticket.countDocuments({ status: "Open" }),
-        Ticket.countDocuments({ status: "Pending" }),
-        Ticket.countDocuments({ status: { $in: ["Resolved", "Closed"] } }),
-        Ticket.countDocuments({ status: { $in: ["Open", "Pending"] }, slaDueAt: { $lt: new Date() } }),
-        Ticket.find({ status: { $in: ["Open", "Pending"] } }).sort({ slaDueAt: 1 }).limit(4),
+        Ticket.countDocuments({ orgId, status: "Open" }),
+        Ticket.countDocuments({ orgId, status: "Pending" }),
+        Ticket.countDocuments({ orgId, status: { $in: ["Resolved", "Closed"] } }),
+        Ticket.countDocuments({ orgId, status: { $in: ["Open", "Pending"] }, slaDueAt: { $lt: new Date() } }),
+        Ticket.find({ orgId, status: { $in: ["Open", "Pending"] } }).sort({ slaDueAt: 1 }).limit(4),
       ]);
 
       const volumeAgg = await Ticket.aggregate([
+        { $match: { orgId: new mongoose.Types.ObjectId(orgId) } },
         { $group: { _id: { $dayOfWeek: "$createdAt" }, tickets: { $sum: 1 }, resolved: { $sum: { $cond: [{ $in: ["$status", ["Resolved", "Closed"]] }, 1, 0] } } } },
       ]);
       const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -32,7 +35,10 @@ router.get(
         return { day, tickets: found?.tickets || 0, resolved: found?.resolved || 0 };
       });
 
-      const channelAgg = await Ticket.aggregate([{ $group: { _id: "$channel", value: { $sum: 1 } } }]);
+      const channelAgg = await Ticket.aggregate([
+        { $match: { orgId: new mongoose.Types.ObjectId(orgId) } },
+        { $group: { _id: "$channel", value: { $sum: 1 } } },
+      ]);
       const channelSplit = channelAgg.map((c) => ({ name: c._id || "Email", value: c.value }));
 
       const total = open + pending + resolved;
@@ -57,13 +63,14 @@ router.get(
       });
     }
 
-    // memory mode — compute from in-memory tickets
-    const open = memory.tickets.filter((t) => t.status === "Open").length;
-    const pending = memory.tickets.filter((t) => t.status === "Pending").length;
-    const resolved = memory.tickets.filter((t) => ["Resolved", "Closed"].includes(t.status)).length;
-    const breached = memory.tickets.filter((t) => ["Open", "Pending"].includes(t.status) && new Date(t.slaDueAt) < new Date()).length;
+    // memory mode — compute from this workspace's in-memory tickets
+    const scoped = memory.tickets.filter((t) => String(t.orgId) === String(orgId));
+    const open = scoped.filter((t) => t.status === "Open").length;
+    const pending = scoped.filter((t) => t.status === "Pending").length;
+    const resolved = scoped.filter((t) => ["Resolved", "Closed"].includes(t.status)).length;
+    const breached = scoped.filter((t) => ["Open", "Pending"].includes(t.status) && new Date(t.slaDueAt) < new Date()).length;
     const channels = {};
-    memory.tickets.forEach((t) => { channels[t.channel] = (channels[t.channel] || 0) + 1; });
+    scoped.forEach((t) => { channels[t.channel] = (channels[t.channel] || 0) + 1; });
 
     return res.json({
       stats: { open, pending, resolved, breaches: breached, csat: "4.6 / 5", csatCount: 1204, avgFirstResponse: "18m" },
@@ -83,7 +90,7 @@ router.get(
         { stage: "In progress", count: 640 }, { stage: "Resolved", count: 540 },
         { stage: "CSAT given", count: 320 },
       ],
-      needsAttention: [...memory.tickets].sort((a, b) => new Date(a.slaDueAt) - new Date(b.slaDueAt)).slice(0, 4).map(serializeTicket),
+      needsAttention: [...scoped].sort((a, b) => new Date(a.slaDueAt) - new Date(b.slaDueAt)).slice(0, 4).map(serializeTicket),
       slaPolicies: SLA_POLICIES,
       mode: "memory",
     });

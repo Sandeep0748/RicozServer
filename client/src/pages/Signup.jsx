@@ -10,6 +10,7 @@ export default function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [workspace, setWorkspace] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -19,7 +20,7 @@ export default function Signup() {
     e.preventDefault();
     setBusy(true); setError("");
     try {
-      await register(name, email, password);
+      await register(name, email, password, workspace);
       navigate("/app", { replace: true });
     } catch (err) {
       setError(getAuthErrorMessage(err, "signup"));
@@ -34,9 +35,12 @@ export default function Signup() {
           <span className="text-xl font-bold">RicozServe</span>
         </div>
         <h1 className="mt-6 text-2xl font-bold tracking-tight">Create your workspace account</h1>
-        <p className="mt-1 text-sm text-[#666]">Agents get ticket access immediately. First admin is seeded.</p>
+        <p className="mt-1 text-sm text-[#666]">You get your own workspace with a 14-day Pro trial. First admin is seeded for the demo.</p>
         {error && <p className="mt-4 rounded-lg bg-red-50 border border-red-100 text-red-700 text-sm px-3 py-2">{error}</p>}
-        <label className="mt-5 block text-sm font-medium">Name
+        <label className="mt-5 block text-sm font-medium">Workspace name
+          <input value={workspace} onChange={(e) => setWorkspace(e.target.value)} placeholder="Acme Support" className="mt-1 w-full rounded-lg border border-[#DDD] px-3 py-2.5 outline-none focus:border-[#C5002B]" />
+        </label>
+        <label className="mt-3 block text-sm font-medium">Name
           <input value={name} onChange={(e) => setName(e.target.value)} required className="mt-1 w-full rounded-lg border border-[#DDD] px-3 py-2.5 outline-none focus:border-[#C5002B]" />
         </label>
         <label className="mt-3 block text-sm font-medium">Email

@@ -10,6 +10,7 @@ export default function Login() {
   const location = useLocation();
   const [email, setEmail] = useState("admin@ricoz.local");
   const [password, setPassword] = useState("Admin123!");
+  const [workspace, setWorkspace] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -19,7 +20,7 @@ export default function Login() {
     e.preventDefault();
     setBusy(true); setError("");
     try {
-      await login(email, password);
+      await login(email, password, workspace || undefined);
       navigate(location.state?.from || "/app", { replace: true });
     } catch (err) {
       setError(getAuthErrorMessage(err, "login"));
@@ -41,6 +42,9 @@ export default function Login() {
         </label>
         <label className="mt-3 block text-sm font-medium">Password
           <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required className="mt-1 w-full rounded-lg border border-[#DDD] px-3 py-2.5 outline-none focus:border-[#C5002B]" />
+        </label>
+        <label className="mt-3 block text-sm font-medium">Workspace <span className="font-normal text-[#888]">(only if your email is in several)</span>
+          <input value={workspace} onChange={(e) => setWorkspace(e.target.value)} placeholder="acme-support" className="mt-1 w-full rounded-lg border border-[#DDD] px-3 py-2.5 outline-none focus:border-[#C5002B]" />
         </label>
         <button disabled={busy} className="mt-5 w-full rounded-xl bg-[#C5002B] hover:bg-[#A30024] text-white font-semibold py-3 disabled:opacity-60">
           {busy ? "Signing in…" : "Sign in"}

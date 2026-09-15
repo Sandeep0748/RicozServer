@@ -7,10 +7,12 @@ import rateLimit from "express-rate-limit";
 import { connectDb, isDbConnected } from "./config/db.js";
 import { notFound, errorHandler } from "./middleware/error.js";
 import authRouter from "./routes/auth.js";
+import orgRouter from "./routes/org.js";
 import ticketsRouter from "./routes/tickets.js";
 import customersRouter from "./routes/customers.js";
 import kbRouter from "./routes/kb.js";
 import dashboardRouter from "./routes/dashboard.js";
+import { PLANS, TRIAL_DAYS } from "./config/plans.js";
 
 const app = express();
 // CORP must allow cross-origin: this is a cross-origin API by design
@@ -42,7 +44,10 @@ app.use("/api/auth", rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
 app.get("/api/health", (_req, res) =>
   res.json({ ok: true, service: "RicozServe API", mode: isDbConnected() ? "mongo" : "memory", time: new Date().toISOString() })
 );
+// Public plan catalog — powers the landing pricing table (no auth needed).
+app.get("/api/plans", (_req, res) => res.json({ trialDays: TRIAL_DAYS, plans: PLANS }));
 app.use("/api/auth", authRouter);
+app.use("/api/org", orgRouter);
 app.use("/api/tickets", ticketsRouter);
 app.use("/api/customers", customersRouter);
 app.use("/api/kb", kbRouter);

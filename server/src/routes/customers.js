@@ -11,6 +11,19 @@ import { memory } from "../store/memoryStore.js";
 const router = Router();
 router.use(protect);
 
+function orgIdOf(req) {
+  return req.orgId;
+}
+
+async function ticketCountFor(c, orgId) {
+  if (isDbConnected()) {
+    return Ticket.countDocuments({ orgId, $or: [{ customer: c._id }, { customerName: c.name }] });
+  }
+  return memory.tickets.filter(
+    (t) => String(t.orgId) === String(orgId) && (String(t.customer) === String(c._id || c.id) || t.customerName === c.name)
+  ).length;
+}
+
 // GET /api/customers?search,page,limit
 router.get(
   "/",
@@ -21,27 +34,29 @@ router.get(
 
     if (isDbConnected()) {
       const filter = search
-        ? { $or: [{ name: new RegExp(search, "i") }, { company: new RegExp(search, "i") }, { email: new RegExp(search, "i") }] }
-        : {};
+        ? { orgId: orgIdOf(req), $or: [{ name: new RegExp(search, "i") }, { company: new RegExp(search, "i") }, { email: new RegExp(search, "i") }] }
+        : { orgId: orgIdOf(req) };
       const total = await Customer.countDocuments(filter);
       const docs = await Customer.find(filter).sort({ updatedAt: -1 }).skip((pg - 1) * lim).limit(lim);
       const rows = await Promise.all(
         docs.map(async (c) => {
-          const count = await Ticket.countDocuments({ $or: [{ customer: c._id }, { customerName: c.name }] });
+          const count = await ticketCountFor(c, orgIdOf(req));
           return serializeCustomer(c, count);
         })
       );
       return res.json(pageOf(rows, total, pg, lim));
     }
 
-    let list = [...memory.customers];
+    let list = memory.customers.filter((c) => String(c.orgId) === String(orgIdOf(req)));
     if (search) {
       const s = search.toLowerCase();
       list = list.filter((c) => `${c.name} ${c.company} ${c.email}`.toLowerCase().includes(s));
     }
     const total = list.length;
     const rows = list.slice((pg - 1) * lim, pg * lim).map((c) => {
-      const count = memory.tickets.filter((t) => t.customerName === c.name).length;
+      const count = memory.tickets.filter(
+        (t) => String(t.orgId) === String(orgIdOf(req)) && (String(t.customer) === String(c.id) || t.customerName === c.name)
+      ).length;
       return serializeCustomer(c, count);
     });
     return res.json(pageOf(rows, total, pg, lim));
@@ -57,10 +72,10 @@ router.post(
     if (!errors.isEmpty()) return res.status(400).json({ error: errors.array()[0].msg });
     const { name, email, company, phone, health, csat } = req.body;
     if (isDbConnected()) {
-      const doc = await Customer.create({ name, email, company, phone, health, csat });
+      const doc = await Customer.create({ name, email, company, phone, health, csat, orgId: orgIdOf(req) });
       return res.status(201).json(serializeCustomer(doc, 0));
     }
-    const c = { id: `c-${Date.now()}`, name, email: email || "", company: company || "", phone: phone || "", health: health || "Healthy", csat: csat || 4.2, createdAt: new Date(), updatedAt: new Date() };
+    const c = { id: `c-${Date.now()}`, orgId: orgIdOf(req), name, email: email || "", company: company || "", phone: phone || "", health: health || "Healthy", csat: csat || 4.2, createdAt: new Date(), updatedAt: new Date() };
     memory.customers.unshift(c);
     return res.status(201).json(serializeCustomer(c, 0));
   })
@@ -71,15 +86,18 @@ router.get(
   "/:id",
   asyncHandler(async (req, res) => {
     const { id } = req.params;
+    const orgId = orgIdOf(req);
     if (isDbConnected()) {
-      const c = (await Customer.findById(id).catch(() => null)) || (await Customer.findOne({ name: id }));
+      const c = (await Customer.findOne({ _id: id, orgId }).catch(() => null)) || (await Customer.findOne({ name: id, orgId }));
       if (!c) return res.status(404).json({ error: "Customer not found" });
-      const tickets = await Ticket.find({ $or: [{ customer: c._id }, { customerName: c.name }] }).sort({ updatedAt: -1 }).limit(25);
+      const tickets = await Ticket.find({ orgId, $or: [{ customer: c._id }, { customerName: c.name }] }).sort({ updatedAt: -1 }).limit(25);
       return res.json({ customer: serializeCustomer(c, tickets.length), tickets: tickets.map(serializeTicket) });
     }
-    const c = memory.customers.find((x) => x.id === id || x.name === id);
+    const c = memory.customers.find((x) => String(x.orgId) === String(orgId) && (x.id === id || x.name === id));
     if (!c) return res.status(404).json({ error: "Customer not found" });
-    const tickets = memory.tickets.filter((t) => t.customerName === c.name).map(serializeTicket);
+    const tickets = memory.tickets.filter(
+      (t) => String(t.orgId) === String(orgId) && (String(t.customer) === String(c.id) || t.customerName === c.name)
+    ).map(serializeTicket);
     return res.json({ customer: serializeCustomer(c, tickets.length), tickets });
   })
 );

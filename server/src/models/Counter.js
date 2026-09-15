@@ -5,11 +5,12 @@ const counterSchema = new mongoose.Schema({
   seq: { type: Number, default: 1042 },
 });
 
-export async function nextTicketId() {
+export async function nextTicketId(orgId) {
+  const key = orgId ? `ticket:${orgId}` : "ticket";
   const doc = await mongoose.models.Counter.findOneAndUpdate(
-    { key: "ticket" },
+    { key },
     { $inc: { seq: 1 } },
-    { new: true, upsert: true }
+    { returnDocument: "after", upsert: true }
   );
   return `RC-${doc.seq}`;
 }

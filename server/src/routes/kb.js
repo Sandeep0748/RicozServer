@@ -10,6 +10,10 @@ import { memory } from "../store/memoryStore.js";
 const router = Router();
 router.use(protect);
 
+function orgIdOf(req) {
+  return req.orgId;
+}
+
 // GET /api/kb?q,category,page,limit
 router.get(
   "/",
@@ -19,7 +23,7 @@ router.get(
     const lim = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
 
     if (isDbConnected()) {
-      const filter = {};
+      const filter = { orgId: orgIdOf(req) };
       if (category) filter.category = category;
       if (q) filter.$or = [{ title: new RegExp(q, "i") }, { body: new RegExp(q, "i") }];
       const total = await Article.countDocuments(filter);
@@ -27,7 +31,7 @@ router.get(
       return res.json(pageOf(docs.map(serializeArticle), total, pg, lim));
     }
 
-    let list = [...memory.articles].sort((a, b) => b.views - a.views);
+    let list = memory.articles.filter((a) => String(a.orgId) === String(orgIdOf(req))).sort((a, b) => b.views - a.views);
     if (category) list = list.filter((a) => a.category === category);
     if (q) {
       const s = q.toLowerCase();
@@ -47,10 +51,10 @@ router.post(
     if (!errors.isEmpty()) return res.status(400).json({ error: errors.array()[0].msg });
     const { title, body, category } = req.body;
     if (isDbConnected()) {
-      const doc = await Article.create({ title, body, category });
+      const doc = await Article.create({ title, body, category, orgId: orgIdOf(req) });
       return res.status(201).json(serializeArticle(doc));
     }
-    const a = { id: `a-${Date.now()}`, title, body: body || "", category: category || "General", views: 0, helpfulYes: 0, helpfulNo: 0, createdAt: new Date(), updatedAt: new Date() };
+    const a = { id: `a-${Date.now()}`, orgId: orgIdOf(req), title, body: body || "", category: category || "General", views: 0, helpfulYes: 0, helpfulNo: 0, createdAt: new Date(), updatedAt: new Date() };
     memory.articles.unshift(a);
     return res.status(201).json(serializeArticle(a));
   })
@@ -62,13 +66,13 @@ router.get(
   asyncHandler(async (req, res) => {
     const { id } = req.params;
     if (isDbConnected()) {
-      const doc = await Article.findById(id).catch(() => null);
+      const doc = await Article.findOne({ _id: id, orgId: orgIdOf(req) }).catch(() => null);
       if (!doc) return res.status(404).json({ error: "Article not found" });
       doc.views += 1;
       await doc.save();
       return res.json(serializeArticle(doc));
     }
-    const a = memory.articles.find((x) => x.id === id);
+    const a = memory.articles.find((x) => String(x.orgId) === String(orgIdOf(req)) && x.id === id);
     if (!a) return res.status(404).json({ error: "Article not found" });
     a.views += 1;
     return res.json(serializeArticle(a));
@@ -82,14 +86,14 @@ router.post(
     const { id } = req.params;
     const { vote } = req.body;
     if (isDbConnected()) {
-      const doc = await Article.findById(id).catch(() => null);
+      const doc = await Article.findOne({ _id: id, orgId: orgIdOf(req) }).catch(() => null);
       if (!doc) return res.status(404).json({ error: "Article not found" });
       if (vote === "no") doc.helpfulNo += 1;
       else doc.helpfulYes += 1;
       await doc.save();
       return res.json(serializeArticle(doc));
     }
-    const a = memory.articles.find((x) => x.id === id);
+    const a = memory.articles.find((x) => String(x.orgId) === String(orgIdOf(req)) && x.id === id);
     if (!a) return res.status(404).json({ error: "Article not found" });
     if (vote === "no") a.helpfulNo += 1;
     else a.helpfulYes += 1;
