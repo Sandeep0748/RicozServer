@@ -2,6 +2,10 @@ import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-me";
 
+if (!process.env.JWT_SECRET && process.env.NODE_ENV === "production") {
+  console.warn("WARNING: JWT_SECRET is unset in production — using insecure dev fallback. Existing tokens will invalidate once you set a real secret.");
+}
+
 export function signToken(user) {
   return jwt.sign(
     { id: user._id ? String(user._id) : String(user.id), role: user.role },

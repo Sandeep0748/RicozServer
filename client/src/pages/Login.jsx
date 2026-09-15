@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Headset } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { getAuthErrorMessage, warmUpApi } from "../api/client";
 
 export default function Login() {
   const { login } = useAuth();
@@ -12,6 +13,8 @@ export default function Login() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
+  useEffect(() => { warmUpApi(); }, []);
+
   async function submit(e) {
     e.preventDefault();
     setBusy(true); setError("");
@@ -19,7 +22,7 @@ export default function Login() {
       await login(email, password);
       navigate(location.state?.from || "/app", { replace: true });
     } catch (err) {
-      setError(err?.response?.data?.error || "Login failed. Is the API running?");
+      setError(getAuthErrorMessage(err, "login"));
     } finally { setBusy(false); }
   }
 
