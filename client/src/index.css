@@ -10,8 +10,16 @@
   --color-pill: #ededed;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 html, body, #root {
   height: 100%;
+}
+
+section[id] {
+  scroll-margin-top: 84px;
 }
 
 body {

@@ -1,4 +1,19 @@
-export default function Footer() {
+import { Link } from "react-router-dom";
+
+export default function Footer({ dark = false }) {
+  if (dark) {
+    return (
+      <footer className="border-t border-white/10 bg-[#0C1A33]">
+        <div className="mx-auto max-w-[1200px] px-5 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-[13.5px]">
+          <p className="text-white/60">© 2026 RicozServe. Service, clearly managed.</p>
+          <div className="flex items-center gap-5">
+            <Link to="/login" className="text-white/60 hover:text-white transition-colors">Sign in</Link>
+            <Link to="/signup" className="text-white/60 hover:text-white transition-colors">Create account</Link>
+          </div>
+        </div>
+      </footer>
+    );
+  }
   return (
     <footer className="border-t border-[#EAEAEA] bg-white">
       <div className="mx-auto max-w-7xl px-5 py-10 grid gap-8 sm:grid-cols-4 text-sm">
