@@ -3,7 +3,8 @@ import axios from "axios";
 // Strip trailing slashes so VITE_API_URL works with or without them.
 // Expected shape: https://<api-host> (no /api suffix — endpoints add it).
 export const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:5000").replace(/\/+$/, "");
-export const TOKEN_KEY = "ricozserve.token";
+export const TOKEN_KEY = "ricozinvoice.token";
+const LEGACY_TOKEN_KEY = "ricozserve.token";
 
 const isBrowser = typeof window !== "undefined";
 const isLocalHostApi = /^(http:\/\/localhost|http:\/\/127\.)/i.test(API_URL);
@@ -20,7 +21,7 @@ if (isBrowser && isLocalHostApi && window.location.hostname !== "localhost" && w
 export const api = axios.create({ baseURL: API_URL, timeout: 30000 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem(TOKEN_KEY);
+  const token = localStorage.getItem(TOKEN_KEY) || localStorage.getItem(LEGACY_TOKEN_KEY);
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });

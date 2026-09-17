@@ -12,6 +12,7 @@ import ticketsRouter from "./routes/tickets.js";
 import customersRouter from "./routes/customers.js";
 import kbRouter from "./routes/kb.js";
 import dashboardRouter from "./routes/dashboard.js";
+import invoicingRouter from "./routes/invoicing.js";
 import { PLANS, TRIAL_DAYS } from "./config/plans.js";
 
 const app = express();
@@ -42,7 +43,7 @@ app.use(
 
 app.use("/api/auth", rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
 app.get("/api/health", (_req, res) =>
-  res.json({ ok: true, service: "RicozServe API", mode: isDbConnected() ? "mongo" : "memory", time: new Date().toISOString() })
+  res.json({ ok: true, service: "RicozInvoice API", mode: isDbConnected() ? "mongo" : "memory", time: new Date().toISOString() })
 );
 // Public plan catalog — powers the landing pricing table (no auth needed).
 app.get("/api/plans", (_req, res) => res.json({ trialDays: TRIAL_DAYS, plans: PLANS }));
@@ -52,6 +53,7 @@ app.use("/api/tickets", ticketsRouter);
 app.use("/api/customers", customersRouter);
 app.use("/api/kb", kbRouter);
 app.use("/api/dashboard", dashboardRouter);
+app.use("/api", invoicingRouter);
 
 app.use(notFound);
 app.use(errorHandler);
@@ -59,7 +61,7 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 connectDb(process.env.MONGO_URI).then(() => {
   app.listen(PORT, () => {
-    console.log(`RicozServe API listening on :${PORT} (mode: ${isDbConnected() ? "mongo" : "memory"})`);
+    console.log(`RicozInvoice API listening on :${PORT} (mode: ${isDbConnected() ? "mongo" : "memory"})`);
     console.log(`CORS allowed origins: ${allowedOrigins.join(", ")} (+ https://*.vercel.app, http://localhost:*)`);
     if (!process.env.CLIENT_URL && process.env.NODE_ENV === "production") {
       console.warn("WARNING: CLIENT_URL is unset in production — browsers on your deployed frontend will be blocked by CORS. Set CLIENT_URL to your Vercel URL (comma-separated for multiple).");

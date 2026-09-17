@@ -1,6 +1,11 @@
 import { createContext, useContext, useCallback, useEffect, useState } from "react";
 import { api, TOKEN_KEY } from "../api/client";
 
+const LEGACY_KEY = "ricozserve.token";
+function readToken() {
+  return localStorage.getItem(TOKEN_KEY) || localStorage.getItem(LEGACY_KEY);
+}
+
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
@@ -9,7 +14,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem(TOKEN_KEY);
+    const token = readToken();
     if (!token) { setLoading(false); return; }
     Promise.all([api.get("/api/auth/me"), api.get("/api/org").catch(() => null)])
       .then(([me, orgRes]) => {
@@ -17,7 +22,7 @@ export function AuthProvider({ children }) {
         // /api/org returns { organization, plan, entitlements, trial, usage, ... }
         setOrg(orgRes?.data?.organization ? { ...orgRes.data.organization, planEffective: orgRes.data.plan, trial: orgRes.data.trial } : null);
       })
-      .catch(() => { localStorage.removeItem(TOKEN_KEY); setUser(null); setOrg(null); })
+      .catch(() => { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(LEGACY_KEY); setUser(null); setOrg(null); })
       .finally(() => setLoading(false));
   }, []);
 
@@ -39,6 +44,7 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(() => {
     localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(LEGACY_KEY);
     setUser(null);
     setOrg(null);
   }, []);

@@ -70,12 +70,12 @@ router.post(
   asyncHandler(async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ error: errors.array()[0].msg });
-    const { name, email, company, phone, health, csat } = req.body;
+    const { name, email, company, phone, health, csat, address, currency, gstin, contactPerson } = req.body;
     if (isDbConnected()) {
-      const doc = await Customer.create({ name, email, company, phone, health, csat, orgId: orgIdOf(req) });
+      const doc = await Customer.create({ name, email, company, phone, health, csat, address, currency, gstin, contactPerson, orgId: orgIdOf(req) });
       return res.status(201).json(serializeCustomer(doc, 0));
     }
-    const c = { id: `c-${Date.now()}`, orgId: orgIdOf(req), name, email: email || "", company: company || "", phone: phone || "", health: health || "Healthy", csat: csat || 4.2, createdAt: new Date(), updatedAt: new Date() };
+    const c = { id: `c-${Date.now()}`, orgId: orgIdOf(req), name, email: email || "", company: company || "", phone: phone || "", health: health || "Healthy", csat: csat || 4.2, address: address || "", currency: currency || "INR", gstin: gstin || "", contactPerson: contactPerson || "", createdAt: new Date(), updatedAt: new Date() };
     memory.customers.unshift(c);
     return res.status(201).json(serializeCustomer(c, 0));
   })

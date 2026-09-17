@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Headset } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { getAuthErrorMessage, warmUpApi } from "../api/client";
 
@@ -21,7 +20,7 @@ export default function Signup() {
     setBusy(true); setError("");
     try {
       await register(name, email, password, workspace);
-      navigate("/app", { replace: true });
+      navigate("/dashboard", { replace: true });
     } catch (err) {
       setError(getAuthErrorMessage(err, "signup"));
     } finally { setBusy(false); }
@@ -31,8 +30,8 @@ export default function Signup() {
     <div className="min-h-screen grid place-items-center bg-[#FAFAFA] px-4">
       <form onSubmit={submit} className="w-full max-w-md rounded-2xl border border-[#EAEAEA] bg-white p-8">
         <div className="flex items-center gap-2">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#C5002B] text-white"><Headset className="h-5 w-5" /></span>
-          <span className="text-xl font-bold">RicozServe</span>
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#C4122F] text-white font-extrabold">R</span>
+          <span className="text-xl font-extrabold">Ricoz<span className="text-[#6B7280] font-semibold">Invoice</span></span>
         </div>
         <h1 className="mt-6 text-2xl font-bold tracking-tight">Create your workspace account</h1>
         <p className="mt-1 text-sm text-[#666]">You get your own workspace with a 14-day Pro trial. First admin is seeded for the demo.</p>

@@ -68,3 +68,45 @@ export function serializeArticle(a) {
 export function pageOf(rows, total, page, limit) {
   return { data: rows, total, page, pages: Math.max(1, Math.ceil(total / limit)) };
 }
+
+const oid = (v) => String(v?._id || v?.id || v || "");
+
+export function serializeItem(t) {
+  return {
+    _id: oid(t), id: oid(t), name: t.name, sku: t.sku || "", description: t.description || "",
+    type: t.type || "product", rate: t.rate || 0, taxRate: t.taxRate || 0, unit: t.unit || "pcs",
+    createdAt: t.createdAt, updatedAt: t.updatedAt,
+  };
+}
+
+export function serializeInvoice(t) {
+  const total = t.total || 0;
+  const paid = t.paid || 0;
+  return {
+    _id: oid(t), id: oid(t), number: t.number || t.ticketId || oid(t).slice(-6),
+    customer: t.customerName || "", customerId: t.customer ? oid(t.customer) : "",
+    customerName: t.customerName || "", company: t.company || "",
+    issueDate: t.issueDate, dueDate: t.dueDate,
+    lines: t.lines || [], subtotal: t.subtotal || 0, taxTotal: t.taxTotal || 0,
+    total, paid, balance: total - paid, status: t.status || "draft",
+    paymentTerms: t.paymentTerms || "Net 30", notes: t.notes || "",
+    payments: t.payments || [], createdAt: t.createdAt, updatedAt: t.updatedAt,
+  };
+}
+
+export function serializeEstimate(t) {
+  return {
+    _id: oid(t), id: oid(t), number: t.number || oid(t).slice(-6),
+    customer: t.customerName || "", customerId: t.customer ? oid(t.customer) : "",
+    customerName: t.customerName || "", company: t.company || "",
+    validTill: t.validTill, lines: t.lines || [],
+    subtotal: t.subtotal || 0, taxTotal: t.taxTotal || 0, total: t.total || 0,
+    status: t.status || "draft", notes: t.notes || "",
+    convertedTo: t.convertedTo ? oid(t.convertedTo) : null,
+    createdAt: t.createdAt, updatedAt: t.updatedAt,
+  };
+}
+
+export function serializeGeneric(t) {
+  return { ...t, _id: oid(t), id: oid(t) };
+}
