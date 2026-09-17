@@ -57,10 +57,15 @@ def footer(c, n):
 
 
 def header(c, eyebrow, title, sub=None):
+    from reportlab.pdfbase.pdfmetrics import stringWidth
     c.setFont("Helvetica-Bold", 10)
     c.setFillColor(BRAND)
     c.drawString(M, H - 52, eyebrow.upper())
-    c.setFont("Helvetica-Bold", 32)
+    # auto-shrink long titles so they never run off the page (P10 fix)
+    size = 32
+    while size > 20 and stringWidth(title, "Helvetica-Bold", size) > W - 2 * M:
+        size -= 2
+    c.setFont("Helvetica-Bold", size)
     c.setFillColor(INK)
     c.drawString(M, H - 92, title)
     if sub:
@@ -548,7 +553,8 @@ def p9_glance(c):
 
 
 def p10_trust(c):
-    y = header(c, "Trust & teamwork", "Your books stay yours - and your team stays in sync.")
+    y = header(c, "Trust & teamwork", "Your books stay yours.",
+               "Your team stays in sync - roles, activity and settings control.")
     cards = [
         ("Workspace isolation", "JWT sessions scoped per", "organisation. Your data only.", BRAND),
         ("Roles & team", "Admins and agents with", "clear workspace roles.", AMBER),
