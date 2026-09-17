@@ -25,6 +25,10 @@ GREEN = HexColor("#16A34A")
 AMBER = HexColor("#F59E0B")
 DARK = HexColor("#111827")
 WHITE = HexColor("#FFFFFF")
+SLATE = HexColor("#7E93A7")
+SLATE_D = HexColor("#6B8298")
+SLATE_L = HexColor("#E8EDF1")
+CHROME = HexColor("#F1F2F4")
 
 OUT = "docs/RicozServe-Business-Deck.pdf"
 
@@ -101,38 +105,229 @@ def pill(c, x, y, w, h, text, fill=PINK, fg=BRAND, size=10):
 # ---------------- pages ----------------
 
 def p1_cover(c):
-    c.setFillColor(WHITE)
+    """GoDecor-style hero but in project UI colors: #F7F8FA + #EEF0F4 grid, brand #C4122F."""
+    # --- project UI background (light, matches client invoice-grid) ---
+    c.setFillColor(BG)
     c.rect(0, 0, W, H, fill=1, stroke=0)
-    # red R mark
+    # grid lines like .invoice-grid (#EEF0F4, 44px -> ~32pt)
+    c.setStrokeColor(HexColor("#EEF0F4"))
+    c.setLineWidth(0.7)
+    step = 32
+    x = 0
+    while x <= W:
+        c.line(x, 0, x, H)
+        x += step
+    y = 0
+    while y <= H:
+        c.line(0, y, W, y)
+        y += step
+
+    # --- top bar: brand left, deck label right ---
     c.setFillColor(BRAND)
-    c.roundRect(M, H - 130, 56, 56, 12, fill=1, stroke=0)
+    c.roundRect(M, H - 84, 40, 40, 9, fill=1, stroke=0)
     c.setFillColor(WHITE)
-    c.setFont("Helvetica-Bold", 34)
-    c.drawCentredString(M + 28, H - 130 + 12, "R")
+    c.setFont("Helvetica-Bold", 24)
+    c.drawCentredString(M + 20, H - 84 + 8, "R")
     c.setFillColor(INK)
-    c.setFont("Helvetica-Bold", 20)
-    c.drawString(M + 68, H - 102, "RicozServe")
-    c.setFont("Helvetica", 13)
+    c.setFont("Helvetica-Bold", 17)
+    c.drawString(M + 50, H - 68, "RicozServe")
+    c.setFont("Helvetica", 10.5)
     c.setFillColor(MUTED)
-    c.drawString(M + 68, H - 122, "Billing, without the chaos")
-    c.setFont("Helvetica-Bold", 52)
-    c.setFillColor(INK)
-    c.drawString(M, H - 230, "Every rupee,")
-    c.drawString(M, H - 288, "in focus.")
-    c.setFont("Helvetica", 14)
-    c.setFillColor(MUTED)
-    c.drawString(M, H - 322, "Estimates, invoices, recurring billing, expenses, projects, time and reports -")
-    c.drawString(M, H - 344, "one calm workspace for your business.")
-    for i, t in enumerate(["Invoices", "Estimates", "Expenses", "Reports"]):
-        pill(c, M + i * 150, H - 400, 136, 30, t)
-    c.setFillColor(BRAND)
-    c.roundRect(M, 96, 250, 48, 10, fill=1, stroke=0)
-    c.setFillColor(WHITE)
-    c.setFont("Helvetica-Bold", 14)
-    c.drawCentredString(M + 125, 112, "Create your workspace  >")
-    c.setFont("Helvetica", 10)
+    c.drawString(M + 50, H - 82, "Billing, without the chaos")
+    c.setFont("Helvetica", 8.5)
     c.setFillColor(FAINT)
-    c.drawString(M, 66, "Customer business deck  -  12 pages")
+    c.drawRightString(W - M, H - 66, "Customer business deck  -  12 pages")
+
+    # --- headline (centered, ink on light) ---
+    c.setFillColor(BRAND)
+    c.setFont("Helvetica-Bold", 10)
+    c.drawCentredString(W / 2, H - 122, "WORKSPACE  /  OVERVIEW")
+    c.setFillColor(INK)
+    c.setFont("Helvetica-Bold", 38)
+    c.drawCentredString(W / 2, H - 158, "Every rupee, in focus.")
+    c.setFont("Helvetica", 11.5)
+    c.setFillColor(MUTED)
+    c.drawCentredString(W / 2, H - 180,
+                        "Estimates, invoices, recurring billing, expenses, projects, time and reports - one calm workspace.")
+
+    # --- pill marquee (project UI pills: pink + white, like WorkspaceTopbar) ---
+    row1 = ["Total Billed", "Collected", "Outstanding", "Expenses", "Invoices", "Estimates"]
+    row2 = ["Recurring", "Customers", "Projects", "Time tracking", "Reports", "GST-Ready"]
+    for r, items in enumerate((row1, row2)):
+        pw, ph, gap = 108, 21, 8
+        total = len(items) * pw + (len(items) - 1) * gap
+        x = (W - total) / 2
+        y = H - 214 - r * 28
+        for t in items:
+            # row1 = pink pill (bg #FFF1F2, text #C4122F) like active Workspace pill
+            # row2 = white pill with line border, ink text
+            if r == 0:
+                fill, fg, stroke = PINK, BRAND, HexColor("#F3C2C8")
+            else:
+                fill, fg, stroke = WHITE, INK, LINE
+            c.setFillColor(fill)
+            c.setStrokeColor(stroke)
+            c.setLineWidth(0.8)
+            c.roundRect(x, y, pw, ph, ph / 2, fill=1, stroke=1)
+            c.setFont("Helvetica-Bold", 7.5)
+            c.setFillColor(fg)
+            c.drawCentredString(x + pw / 2, y + 6.5, t)
+            x += pw + gap
+
+    # --- browser mockup (live dashboard UI, seeded demo data) ---
+    BW, BH = 600, 290
+    bx = (W - BW) / 2
+    by = 52
+    # soft shadow matching light UI
+    c.setFillColor(HexColor("#E2E5EB"))
+    c.roundRect(bx + 4, by - 4, BW, BH, 12, fill=1, stroke=0)
+    # window body
+    c.setFillColor(WHITE)
+    c.setStrokeColor(HexColor("#D9E0E8"))
+    c.setLineWidth(1)
+    c.roundRect(bx, by, BW, BH, 12, fill=1, stroke=1)
+    # chrome bar
+    c.setFillColor(CHROME)
+    c.roundRect(bx + 1, by + BH - 33, BW - 2, 32, 8, fill=1, stroke=0)
+    c.setFillColor(CHROME)
+    c.rect(bx + 1, by + BH - 33, BW - 2, 20, fill=1, stroke=0)
+    for i, col in enumerate((HexColor("#FF5F57"), HexColor("#FEBC2E"), HexColor("#28C840"))):
+        c.setFillColor(col)
+        c.circle(bx + 20 + i * 16, by + BH - 16, 5, fill=1, stroke=0)
+    # url pill
+    c.setFillColor(WHITE)
+    c.setStrokeColor(LINE)
+    c.roundRect(bx + 70, by + BH - 27, 300, 21, 10, fill=1, stroke=1)
+    c.setFont("Helvetica", 8)
+    c.setFillColor(MUTED)
+    c.drawCentredString(bx + 220, by + BH - 19, "ricozserve.app/dashboard")
+    c.setFont("Helvetica-Bold", 7.5)
+    c.setFillColor(GREEN)
+    c.drawRightString(bx + BW - 16, by + BH - 19, "Live UI")
+
+    # inside: sidebar + main
+    ux, uy = bx + 12, by + 12          # inner origin
+    uw, uh = BW - 24, BH - 58          # inner size
+    sbw = 118                          # sidebar width
+    # sidebar
+    c.setFillColor(BG)
+    c.roundRect(ux, uy, sbw, uh, 8, fill=1, stroke=0)
+    c.setFillColor(BRAND)
+    c.roundRect(ux + 10, uy + uh - 28, 22, 22, 5, fill=1, stroke=0)
+    c.setFillColor(WHITE)
+    c.setFont("Helvetica-Bold", 12)
+    c.drawCentredString(ux + 21, uy + uh - 22, "R")
+    c.setFont("Helvetica-Bold", 8)
+    c.setFillColor(INK)
+    c.drawString(ux + 38, uy + uh - 16, "Ricoz Demo")
+    c.setFont("Helvetica", 6.5)
+    c.setFillColor(MUTED)
+    c.drawString(ux + 38, uy + uh - 25, "Workspace")
+    nav = ["Overview", "Invoices", "Estimates", "Recurring", "Customers", "Items", "Expenses"]
+    ny = uy + uh - 52
+    for j, n in enumerate(nav):
+        if j == 0:
+            c.setFillColor(WHITE)
+            c.setStrokeColor(LINE)
+            c.roundRect(ux + 8, ny - 4, sbw - 16, 18, 6, fill=1, stroke=1)
+            c.setFont("Helvetica-Bold", 7)
+            c.setFillColor(INK)
+        else:
+            c.setFont("Helvetica", 7)
+            c.setFillColor(MUTED)
+        c.drawString(ux + 18, ny, n)
+        ny -= 20
+    # main panel
+    mx = ux + sbw + 10
+    mw = uw - sbw - 10
+    c.setFont("Helvetica-Bold", 11)
+    c.setFillColor(INK)
+    c.drawString(mx, uy + uh - 16, "Financial overview")
+    c.setFont("Helvetica", 7)
+    c.setFillColor(MUTED)
+    c.drawString(mx, uy + uh - 27, "Track what is billed, collected, spent, and still outstanding.")
+    # This-month pill
+    c.setFillColor(WHITE)
+    c.setStrokeColor(LINE)
+    c.roundRect(mx + mw - 78, uy + uh - 30, 78, 18, 9, fill=1, stroke=1)
+    c.setFont("Helvetica-Bold", 7)
+    c.setFillColor(INK)
+    c.drawCentredString(mx + mw - 39, uy + uh - 23, "This month")
+    # 4 KPI mini cards (seeded demo data)
+    kpis = [("TOTAL BILLED", "Rs.17,700", "1 inv", DARK),
+            ("COLLECTED", "Rs.5,000", "UPI paid", GREEN),
+            ("OUTSTANDING", "Rs.12,700", "open", BRAND),
+            ("EXPENSES", "Rs.850", "billable", AMBER)]
+    kw = (mw - 18) / 4
+    kx = mx
+    ky = uy + uh - 96
+    for label, val, sub, accent in kpis:
+        c.setFillColor(WHITE)
+        c.setStrokeColor(LINE)
+        c.roundRect(kx, ky, kw, 58, 7, fill=1, stroke=1)
+        c.setFillColor(accent)
+        c.roundRect(kx + 1, ky + 53, kw - 2, 4, 2, fill=1, stroke=0)
+        c.setFont("Helvetica-Bold", 5.5)
+        c.setFillColor(MUTED)
+        c.drawString(kx + 7, ky + 42, label)
+        c.setFont("Helvetica-Bold", 10)
+        c.setFillColor(INK)
+        c.drawString(kx + 7, ky + 26, val)
+        c.setFont("Helvetica", 6.5)
+        c.setFillColor(MUTED)
+        c.drawString(kx + 7, ky + 14, sub)
+        kx += kw + 6
+    # bottom row: cash-flow bars + quick actions
+    # cash flow box
+    cwf_y = uy + 12
+    cwf_h = ky - cwf_y - 8
+    c.setFillColor(WHITE)
+    c.setStrokeColor(LINE)
+    c.roundRect(mx, cwf_y, mw * 0.60, cwf_h, 7, fill=1, stroke=1)
+    c.setFont("Helvetica-Bold", 7.5)
+    c.setFillColor(INK)
+    c.drawString(mx + 8, cwf_y + cwf_h - 16, "Cash flow")
+    c.setFont("Helvetica", 6.5)
+    c.setFillColor(MUTED)
+    c.drawString(mx + 8, cwf_y + cwf_h - 26, "Billed vs collected (demo)")
+    bars = [18, 30, 26, 44, 58, 72]
+    bxx = mx + 12
+    for v in bars:
+        h = v * 0.75
+        c.setFillColor(DARK)
+        c.roundRect(bxx, cwf_y + 18, 10, h, 2, fill=1, stroke=0)
+        c.setFillColor(GREEN)
+        c.roundRect(bxx + 12, cwf_y + 18, 10, h * 0.65, 2, fill=1, stroke=0)
+        bxx += 34
+    # quick actions box
+    qax = mx + mw * 0.60 + 8
+    qaw = mw * 0.40 - 8
+    c.setFillColor(WHITE)
+    c.setStrokeColor(LINE)
+    c.roundRect(qax, cwf_y, qaw, cwf_h, 7, fill=1, stroke=1)
+    c.setFont("Helvetica-Bold", 7.5)
+    c.setFillColor(INK)
+    c.drawString(qax + 8, cwf_y + cwf_h - 16, "Quick actions")
+    qa = ["New invoice", "New estimate", "Add customer"]
+    qy = cwf_y + cwf_h - 46
+    for q in qa:
+        c.setFillColor(BG)
+        c.roundRect(qax + 7, qy, qaw - 14, 20, 5, fill=1, stroke=0)
+        c.setFillColor(BRAND)
+        c.circle(qax + 17, qy + 10, 5, fill=1, stroke=0)
+        c.setFillColor(WHITE)
+        c.setFont("Helvetica-Bold", 6)
+        c.drawCentredString(qax + 17, qy + 8, "+")
+        c.setFont("Helvetica-Bold", 7)
+        c.setFillColor(INK)
+        c.drawString(qax + 27, qy + 7.5, q)
+        qy -= 26
+
+    # caption under mockup
+    c.setFont("Helvetica", 8)
+    c.setFillColor(MUTED)
+    c.drawCentredString(W / 2, by - 16, "Live product UI  -  Financial Overview (demo data: Rs.17,700 billed)")
+    # footer (standard deck footer on light bg)
     footer(c, 1)
 
 
