@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getAuthErrorMessage, warmUpApi } from "../api/client";
+import AuthLayout, { AUTH_BUTTON, AUTH_INPUT, AUTH_LABEL } from "../components/auth/AuthLayout";
 
 export default function Signup() {
-  const { register } = useAuth();
+  const { user, loading, register } = useAuth();
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -14,6 +15,8 @@ export default function Signup() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => { warmUpApi(); }, []);
+
+  if (!loading && user) return <Navigate to="/dashboard" replace />;
 
   async function submit(e) {
     e.preventDefault();
@@ -27,32 +30,35 @@ export default function Signup() {
   }
 
   return (
-    <div className="min-h-screen grid place-items-center bg-[#FAFAFA] px-4">
-      <form onSubmit={submit} className="w-full max-w-md rounded-2xl border border-[#EAEAEA] bg-white p-8">
-        <div className="flex items-center gap-2">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#C4122F] text-white font-extrabold">R</span>
-          <span className="text-xl font-extrabold">Ricoz<span className="text-[#6B7280] font-semibold">Serve</span></span>
-        </div>
-        <h1 className="mt-6 text-2xl font-bold tracking-tight">Create your workspace account</h1>
-        <p className="mt-1 text-sm text-[#666]">You get your own workspace with a 14-day Pro trial. First admin is seeded for the demo.</p>
-        {error && <p className="mt-4 rounded-lg bg-red-50 border border-red-100 text-red-700 text-sm px-3 py-2">{error}</p>}
-        <label className="mt-5 block text-sm font-medium">Workspace name
-          <input value={workspace} onChange={(e) => setWorkspace(e.target.value)} placeholder="Acme Support" className="mt-1 w-full rounded-lg border border-[#DDD] px-3 py-2.5 outline-none focus:border-[#C5002B]" />
+    <AuthLayout
+      eyebrow="Billing, without the chaos"
+      title="Create your workspace"
+      sub="Start sending polished invoices in minutes. 14-day Pro trial included."
+      footer={
+        <>
+          Already have an account?{" "}
+          <Link to="/login" className="font-bold text-[#C4122F]">Sign in</Link>
+        </>
+      }
+    >
+      <form onSubmit={submit}>
+        {error && <p className="mt-4 rounded-xl bg-red-50 border border-red-100 text-red-700 text-sm px-3.5 py-2.5">{error}</p>}
+        <label className={`${AUTH_LABEL} mt-5`}>Workspace name
+          <input value={workspace} onChange={(e) => setWorkspace(e.target.value)} placeholder="Acme Support" autoComplete="organization" className={AUTH_INPUT} />
         </label>
-        <label className="mt-3 block text-sm font-medium">Name
-          <input value={name} onChange={(e) => setName(e.target.value)} required className="mt-1 w-full rounded-lg border border-[#DDD] px-3 py-2.5 outline-none focus:border-[#C5002B]" />
+        <label className={`${AUTH_LABEL} mt-4`}>Your name
+          <input value={name} onChange={(e) => setName(e.target.value)} required autoComplete="name" placeholder="Aarav Sharma" className={AUTH_INPUT} />
         </label>
-        <label className="mt-3 block text-sm font-medium">Email
-          <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required className="mt-1 w-full rounded-lg border border-[#DDD] px-3 py-2.5 outline-none focus:border-[#C5002B]" />
+        <label className={`${AUTH_LABEL} mt-4`}>Email
+          <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required autoComplete="email" placeholder="you@company.com" className={AUTH_INPUT} />
         </label>
-        <label className="mt-3 block text-sm font-medium">Password (min 6)
-          <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required minLength={6} className="mt-1 w-full rounded-lg border border-[#DDD] px-3 py-2.5 outline-none focus:border-[#C5002B]" />
+        <label className={`${AUTH_LABEL} mt-4`}>Password (min 6)
+          <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" required minLength={6} autoComplete="new-password" placeholder="••••••••" className={AUTH_INPUT} />
         </label>
-        <button disabled={busy} className="mt-5 w-full rounded-xl bg-[#111] text-white font-semibold py-3 disabled:opacity-60">
+        <button disabled={busy} className={AUTH_BUTTON}>
           {busy ? "Creating…" : "Create account"}
         </button>
-        <p className="mt-4 text-sm text-[#666]">Have an account? <Link to="/login" className="font-semibold text-[#C5002B]">Sign in</Link></p>
       </form>
-    </div>
+    </AuthLayout>
   );
 }
