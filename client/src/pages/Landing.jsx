@@ -14,7 +14,7 @@ export default function Landing() {
       <header className="border-b border-[#ECECF0]">
         <div className="mx-auto max-w-[1200px] px-5 h-16 flex items-center gap-2">
           <span className="grid h-8 w-8 place-items-center rounded-lg bg-[#C4122F] text-white font-extrabold">R</span>
-          <span className="font-extrabold text-[17px]">Ricoz<span className="text-[#6B7280] font-semibold">Invoice</span></span>
+          <span className="font-extrabold text-[17px]">Ricoz<span className="text-[#6B7280] font-semibold">Serve</span></span>
           <span className="ml-auto flex items-center gap-2">
             <Link to="/login" className="rounded-lg border border-[#E2E8F0] px-4 py-2 text-sm font-semibold">Sign in</Link>
             <Link to="/signup" className="rounded-lg bg-[#C4122F] text-white px-4 py-2 text-sm font-semibold">Create workspace</Link>
@@ -27,7 +27,7 @@ export default function Landing() {
           <Zap className="h-3.5 w-3.5" /> Billing, without the chaos
         </span>
         <h1 className="mt-6 text-[42px] sm:text-[64px] leading-[1.02] font-extrabold tracking-[-0.03em]">
-          RicozInvoice keeps<br />every rupee in focus.
+          RicozServe keeps<br />every rupee in focus.
         </h1>
         <p className="mx-auto mt-5 max-w-[620px] text-[16px] leading-[1.6] text-[#687385]">
           Estimates, invoices, recurring billing, expenses, projects, time tracking and reports — one calm workspace for Prince &amp; Co. and teams like yours.

@@ -33,7 +33,7 @@ export default function WorkspaceSidebar() {
     <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-[#ECECF0] bg-white min-h-screen sticky top-0 h-screen">
       <button onClick={() => navigate("/dashboard")} className="flex items-center gap-2 px-5 h-16 border-b border-[#F0F0F3] text-left">
         <span className="grid h-8 w-8 place-items-center rounded-lg bg-[#C4122F] text-white font-extrabold text-lg">R</span>
-        <span className="font-extrabold text-[17px] tracking-tight">Ricoz<span className="text-[#6B7280] font-semibold">Invoice</span></span>
+        <span className="font-extrabold text-[17px] tracking-tight">Ricoz<span className="text-[#6B7280] font-semibold">Serve</span></span>
       </button>
 
       <div className="p-3">

@@ -13,6 +13,7 @@ export function signToken(user) {
   const payload = { id: user._id ? String(user._id) : String(user.id), role: user.role };
   const orgId = user.orgId ? String(user.orgId) : null;
   if (orgId) payload.orgId = orgId;
+  payload.tv = Number(user.tokenVersion) || 0;
   return jwt.sign(payload, JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || "7d" });
 }
 
@@ -25,6 +26,18 @@ async function resolveLegacyOrg(userId) {
   }
   const user = memory.users.find((u) => String(u.id) === String(userId));
   return user?.orgId ? String(user.orgId) : null;
+}
+
+// Token version for "Log out everywhere". Tokens issued before versioning
+// carry no tv and count as v0, so existing sessions keep working until a bump.
+async function currentTokenVersion(userId) {
+  if (!userId) return 0;
+  if (isDbConnected()) {
+    const user = await User.findById(userId).select("tokenVersion").catch(() => null);
+    return Number(user?.tokenVersion) || 0;
+  }
+  const user = memory.users.find((u) => String(u.id) === String(userId) || String(u._id) === String(userId));
+  return Number(user?.tokenVersion) || 0;
 }
 
 export async function protect(req, res, next) {
@@ -43,6 +56,12 @@ export async function protect(req, res, next) {
       if (!payload.orgId) {
         return res.status(401).json({ error: "Session expired. Please sign in again." });
       }
+    }
+    // "Log out everywhere" bumps tokenVersion — older tokens stop working.
+    // Tokens issued before versioning carry no tv and are treated as v0.
+    const currentTv = await currentTokenVersion(payload.id);
+    if (currentTv > 0 && (Number(payload.tv) || 0) !== currentTv) {
+      return res.status(401).json({ error: "Session expired. Please sign in again." });
     }
     req.user = payload;
     req.orgId = payload.orgId;

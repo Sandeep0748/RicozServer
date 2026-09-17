@@ -1,6 +1,6 @@
-# RicozInvoice — Billing Workspace (Full-Stack v2)
+# RicozServe — Billing Workspace (Full-Stack v2)
 
-RicozInvoice reference build (`ricoz.visualcode.site` screenshots). **Full-stack:** React frontend + Express + MongoDB API with JWT auth, INR-first (minor-units paise) billing.
+RicozServe reference build (`ricoz.visualcode.site` screenshots). **Full-stack:** React frontend + Express + MongoDB API with JWT auth, INR-first (minor-units paise) billing.
 
 ## Structure
 - `client/` — Vite + React 19 + Tailwind v4 + React Router + React Query + Lucide
@@ -11,7 +11,7 @@ RicozInvoice reference build (`ricoz.visualcode.site` screenshots). **Full-stack
 # API (memory mode)
 cd server
 npm install
-npm run dev        # http://localhost:5000/api/health -> { ok:true, service:"RicozInvoice API", mode:"memory" }
+npm run dev        # http://localhost:5000/api/health -> { ok:true, service:"RicozServe API", mode:"memory" }
 
 # Frontend (new terminal)
 cd client

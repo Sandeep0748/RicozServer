@@ -244,4 +244,79 @@ router.get(
   })
 );
 
+// PATCH /api/auth/me — update own display name (Profile settings tab).
+router.patch(
+  "/me",
+  protect,
+  [body("name").notEmpty().withMessage("Name required")],
+  asyncHandler(async (req, res) => {
+    if (fail(req, res)) return;
+    const name = String(req.body.name).slice(0, 80);
+    if (isDbConnected()) {
+      const user = await User.findOne({ _id: req.user.id, orgId: req.orgId }).catch(() => null);
+      if (!user) return res.status(404).json({ error: "User not found" });
+      user.name = name;
+      await user.save();
+      return res.json(user.toJSONSafe());
+    }
+    const user = memory.users.find((u) => String(u.id) === String(req.user.id) && String(u.orgId) === String(req.orgId));
+    if (!user) return res.status(404).json({ error: "User not found" });
+    user.name = name;
+    user.updatedAt = new Date();
+    return res.json(safe(user));
+  })
+);
+
+// POST /api/auth/change-password — { current, next } (Security settings tab).
+router.post(
+  "/change-password",
+  protect,
+  [body("current").notEmpty().withMessage("Current password required"), body("next").isLength({ min: 6 }).withMessage("New password min 6 chars")],
+  asyncHandler(async (req, res) => {
+    if (fail(req, res)) return;
+    const { current, next } = req.body;
+    if (isDbConnected()) {
+      const user = await User.findOne({ _id: req.user.id, orgId: req.orgId }).catch(() => null);
+      if (!user) return res.status(404).json({ error: "User not found" });
+      const ok = user.passwordHash === "__seed__"
+        ? current === (process.env.SEED_ADMIN_PASSWORD || "Admin123!")
+        : await bcrypt.compare(current, user.passwordHash);
+      if (!ok) return res.status(400).json({ error: "Current password is incorrect" });
+      user.passwordHash = await bcrypt.hash(next, 10);
+      await user.save();
+      return res.json({ ok: true });
+    }
+    const user = memory.users.find((u) => String(u.id) === String(req.user.id) && String(u.orgId) === String(req.orgId));
+    if (!user) return res.status(404).json({ error: "User not found" });
+    const ok = user.passwordHash === "__seed__"
+      ? current === (process.env.SEED_ADMIN_PASSWORD || "Admin123!")
+      : await bcrypt.compare(current, user.passwordHash);
+    if (!ok) return res.status(400).json({ error: "Current password is incorrect" });
+    user.passwordHash = await bcrypt.hash(next, 10);
+    user.updatedAt = new Date();
+    return res.json({ ok: true });
+  })
+);
+
+// POST /api/auth/logout-everywhere — invalidates all other sessions
+// by bumping tokenVersion (Security settings tab).
+router.post(
+  "/logout-everywhere",
+  protect,
+  asyncHandler(async (req, res) => {
+    if (isDbConnected()) {
+      const user = await User.findOne({ _id: req.user.id, orgId: req.orgId }).catch(() => null);
+      if (!user) return res.status(404).json({ error: "User not found" });
+      user.tokenVersion = (Number(user.tokenVersion) || 0) + 1;
+      await user.save();
+      return res.json({ ok: true, token: signToken(user) });
+    }
+    const user = memory.users.find((u) => String(u.id) === String(req.user.id) && String(u.orgId) === String(req.orgId));
+    if (!user) return res.status(404).json({ error: "User not found" });
+    user.tokenVersion = (Number(user.tokenVersion) || 0) + 1;
+    user.updatedAt = new Date();
+    return res.json({ ok: true, token: signToken({ _id: user.id, role: user.role, orgId: user.orgId, tokenVersion: user.tokenVersion }) });
+  })
+);
+
 export default router;

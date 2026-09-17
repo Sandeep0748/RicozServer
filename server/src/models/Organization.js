@@ -14,6 +14,40 @@ const organizationSchema = new mongoose.Schema(
     // Max agents in this workspace. Trials unlock Pro *features* but not extra seats.
     seats: { type: Number, default: 2, min: 1 },
     billingCustomerId: { type: String, default: "" }, // Razorpay customer id (Phase 2)
+    // Workspace preferences (Settings tabs). Defaults are applied at read
+    // time (see utils/settings.js), so older orgs need no migration.
+    settings: {
+      business: {
+        name: { type: String, default: "" },
+        logoUrl: { type: String, default: "" },
+        email: { type: String, default: "" },
+        phone: { type: String, default: "" },
+        website: { type: String, default: "" },
+        businessType: { type: String, default: "" },
+        gstin: { type: String, default: "" },
+        pan: { type: String, default: "" },
+        currency: { type: String, default: "INR" },
+        timezone: { type: String, default: "UTC" },
+        dateFormat: { type: String, default: "DD-MM-YYYY" },
+      },
+      invoice: {
+        currency: { type: String, default: "INR" },
+        paymentTerms: { type: String, default: "Net 30" },
+        prefix: { type: String, default: "INV" },
+        startNumber: { type: Number, default: 1, min: 1 },
+        defaultTax: { type: Number, default: 18, min: 0, max: 100 },
+        notes: { type: String, default: "" },
+        terms: { type: String, default: "" },
+      },
+      taxes: { type: [{ name: String, rate: Number }], default: [{ name: "GST", rate: 18 }] },
+      paymentMethods: { type: [String], default: ["UPI", "Card", "Netbanking", "Cash"] },
+      notifications: {
+        invoiceSent: { type: Boolean, default: true },
+        paymentReceived: { type: Boolean, default: true },
+        invoiceOverdue: { type: Boolean, default: true },
+        teamActivity: { type: Boolean, default: true },
+      },
+    },
   },
   { timestamps: true }
 );

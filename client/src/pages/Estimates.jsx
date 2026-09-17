@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { FileCheck2, Search } from "lucide-react";
-import { useEstimates, useCreateEstimate, useConvertEstimate, usePatchEstimate, useCustomersQ } from "../api/billing";
+import { useEstimates, useCreateEstimate, useConvertEstimate, usePatchEstimate, useCustomersQ, useSettings } from "../api/billing";
 import { PageHeader, StatCard, Card, EmptyState, Field, inputCls, btnPrimary } from "../components/workspace/ui";
 import Modal from "../components/workspace/Modal";
 import { paiseToINR, inrToPaise } from "../utils/money";
@@ -74,6 +74,7 @@ export default function Estimates() {
 
 function EstimateModal({ onClose }) {
   const { data: custData } = useCustomersQ({ limit: 100 });
+  const { data: settings } = useSettings();
   const create = useCreateEstimate();
   const [customer, setCustomer] = useState("");
   const [title, setTitle] = useState("");
@@ -84,7 +85,7 @@ function EstimateModal({ onClose }) {
     e.preventDefault();
     setErr("");
     try {
-      await create.mutateAsync({ customer, lines: [{ name: title || "Proposed work", qty: 1, rate: inrToPaise(amount || "1000"), taxRate: 18 }] });
+      await create.mutateAsync({ customer, lines: [{ name: title || "Proposed work", qty: 1, rate: inrToPaise(amount || "1000"), taxRate: settings?.invoice?.defaultTax ?? 18 }] });
       onClose();
     } catch (e2) { setErr(e2?.response?.data?.error || "Could not create estimate."); }
   }

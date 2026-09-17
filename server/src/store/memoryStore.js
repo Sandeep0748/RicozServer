@@ -38,7 +38,7 @@ export const memory = {
   creditNotes: [],
   debitNotes: [],
   notifications: [
-    { id: "n1", orgId: DEMO_ORG_ID, title: "Welcome to RicozInvoice", body: "Add your first customer to start the billing journey.", type: "info", read: false, link: "/customers", createdAt: now(60), updatedAt: now(60) },
+    { id: "n1", orgId: DEMO_ORG_ID, title: "Welcome to RicozServe", body: "Add your first customer to start the billing journey.", type: "info", read: false, link: "/customers", createdAt: now(60), updatedAt: now(60) },
   ],
   seq: { invoice: 1, estimate: 1, credit: 1, debit: 1 },
   articles: [

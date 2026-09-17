@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Box, Search } from "lucide-react";
-import { useItems, useCreateItem, useDeleteItem } from "../api/billing";
+import { useItems, useCreateItem, useDeleteItem, useSettings } from "../api/billing";
 import { PageHeader, StatCard, Card, EmptyState, Field, inputCls, btnPrimary } from "../components/workspace/ui";
 import Modal from "../components/workspace/Modal";
 import { paiseToINR, inrToPaise } from "../utils/money";
@@ -66,7 +66,8 @@ export default function Items() {
 
 function ItemModal({ onClose }) {
   const create = useCreateItem();
-  const [form, setForm] = useState({ name: "", sku: "", description: "", type: "product", rate: "", taxRate: "18" });
+  const { data: settings } = useSettings();
+  const [form, setForm] = useState({ name: "", sku: "", description: "", type: "product", rate: "", taxRate: String(settings?.invoice?.defaultTax ?? 18) });
   const [err, setErr] = useState("");
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 

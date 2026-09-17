@@ -1,9 +1,21 @@
 import { createContext, useContext, useCallback, useEffect, useState } from "react";
 import { api, TOKEN_KEY } from "../api/client";
 
-const LEGACY_KEY = "ricozserve.token";
+const LEGACY_KEY = "ricozinvoice.token";
 function readToken() {
-  return localStorage.getItem(TOKEN_KEY) || localStorage.getItem(LEGACY_KEY);
+  try {
+    const current = localStorage.getItem(TOKEN_KEY);
+    if (current) return current;
+    const legacy = localStorage.getItem(LEGACY_KEY);
+    if (legacy) {
+      // Migrate RicozInvoice-era sessions to the RicozServe key.
+      localStorage.setItem(TOKEN_KEY, legacy);
+      return legacy;
+    }
+  } catch {
+    // Ignore storage errors.
+  }
+  return null;
 }
 
 const AuthContext = createContext(null);
@@ -49,7 +61,20 @@ export function AuthProvider({ children }) {
     setOrg(null);
   }, []);
 
-  return <AuthContext.Provider value={{ user, org, loading, login, register, logout }}>{children}</AuthContext.Provider>;
+  // Re-fetch the signed-in profile (used after Profile settings save).
+  const refresh = useCallback(async () => {
+    const token = readToken();
+    if (!token) return null;
+    try {
+      const { data } = await api.get("/api/auth/me");
+      setUser(data);
+      return data;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  return <AuthContext.Provider value={{ user, org, loading, login, register, logout, refresh }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

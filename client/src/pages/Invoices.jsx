@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { FileText, FilePlus2, Search } from "lucide-react";
-import { useInvoices, useCreateInvoice, useCustomersQ, useItems } from "../api/billing";
+import { useInvoices, useCreateInvoice, useCustomersQ, useItems, useSettings } from "../api/billing";
 import { PageHeader, StatCard, Card, EmptyState, Field, inputCls, btnPrimary } from "../components/workspace/ui";
 import Modal from "../components/workspace/Modal";
 import { paiseToINR, inrToPaise } from "../utils/money";
@@ -72,6 +72,7 @@ export default function Invoices() {
 export function InvoiceModal({ onClose, defaultCustomer }) {
   const { data: custData } = useCustomersQ({ limit: 100 });
   const { data: itemData } = useItems({ limit: 100 });
+  const { data: settings } = useSettings();
   const create = useCreateInvoice();
   const navigate = useNavigate();
   const [customer, setCustomer] = useState(defaultCustomer || "");
@@ -87,10 +88,14 @@ export function InvoiceModal({ onClose, defaultCustomer }) {
     const items = itemData?.data || [];
     const picked = items.find((x) => x.name === itemName) || items[0];
     const lineRate = rate ? inrToPaise(rate) : (picked?.rate || 50000);
+    const inv0 = settings?.invoice || {};
+    const taxRate = picked?.taxRate ?? inv0.defaultTax ?? 18;
     try {
       const inv = await create.mutateAsync({
         customer,
-        lines: [{ name: picked?.name || itemName || "Service", qty: Number(qty) || 1, rate: lineRate, taxRate: picked?.taxRate || 18 }],
+        lines: [{ name: picked?.name || itemName || "Service", qty: Number(qty) || 1, rate: lineRate, taxRate }],
+        paymentTerms: inv0.paymentTerms || undefined,
+        notes: inv0.notes || undefined,
       });
       onClose?.();
       navigate(`/invoices/${inv._id || inv.id}`);
@@ -112,7 +117,7 @@ export function InvoiceModal({ onClose, defaultCustomer }) {
           <Field label="Qty"><input type="number" min="1" value={qty} onChange={(e) => setQty(e.target.value)} className={inputCls} /></Field>
           <Field label="Rate (₹)"><input value={rate} onChange={(e) => setRate(e.target.value)} placeholder="500.00" className={inputCls} /></Field>
         </div>
-        <p className="text-[12px] text-[#8A8FA3]">Journey tip: Customer → Item → Invoice → Collect payment from invoice detail. Tax defaults to 18% GST.</p>
+        <p className="text-[12px] text-[#8A8FA3]">Journey tip: Customer → Item → Invoice → Collect payment from invoice detail. Tax {settings?.invoice?.defaultTax ?? 18}% · {settings?.invoice?.paymentTerms || "Net 30"} · {(settings?.invoice?.prefix || "INV") + "-####"} numbering from Invoice settings.</p>
         <button disabled={create.isPending} className={`${btnPrimary} w-full !py-3`}>{create.isPending ? "Creating…" : "Create & open invoice"}</button>
       </form>
     </Modal>

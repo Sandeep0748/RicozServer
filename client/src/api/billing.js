@@ -50,3 +50,7 @@ export function useCreateRecurring() { return useMut((p) => api.post("/api/recur
 export function useCreateCredit() { return useMut((p) => api.post("/api/credit-notes", p).then((r) => r.data), ["credit-notes", "overview"]); }
 export function useCreateDebit() { return useMut((p) => api.post("/api/debit-notes", p).then((r) => r.data), ["debit-notes", "overview"]); }
 export function useReadAllNotifications() { return useMut(() => api.post("/api/notifications/read-all").then((r) => r.data), ["notifications"]); }
+export function useUpdateSettings() { return useMut(({ section, data }) => api.put("/api/settings", { section, data }).then((r) => r.data), ["settings", "overview"]); }
+export function useUpdateProfile() { return useMut((p) => api.patch("/api/auth/me", p).then((r) => r.data), []); }
+export function useChangePassword() { return useMut((p) => api.post("/api/auth/change-password", p).then((r) => r.data), []); }
+export function useLogoutEverywhere() { return useMut(() => api.post("/api/auth/logout-everywhere").then((r) => r.data), []); }

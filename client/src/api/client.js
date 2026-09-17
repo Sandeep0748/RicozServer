@@ -3,8 +3,24 @@ import axios from "axios";
 // Strip trailing slashes so VITE_API_URL works with or without them.
 // Expected shape: https://<api-host> (no /api suffix — endpoints add it).
 export const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:5000").replace(/\/+$/, "");
-export const TOKEN_KEY = "ricozinvoice.token";
-const LEGACY_TOKEN_KEY = "ricozserve.token";
+export const TOKEN_KEY = "ricozserve.token";
+const LEGACY_TOKEN_KEY = "ricozinvoice.token";
+
+export function getStoredToken() {
+  try {
+    const current = localStorage.getItem(TOKEN_KEY);
+    if (current) return current;
+    const legacy = localStorage.getItem(LEGACY_TOKEN_KEY);
+    if (legacy) {
+      // One-time migration from RicozInvoice brand key to RicozServe key.
+      localStorage.setItem(TOKEN_KEY, legacy);
+      return legacy;
+    }
+  } catch {
+    // localStorage unavailable (SSR/tests) — fall through.
+  }
+  return null;
+}
 
 const isBrowser = typeof window !== "undefined";
 const isLocalHostApi = /^(http:\/\/localhost|http:\/\/127\.)/i.test(API_URL);
@@ -21,7 +37,7 @@ if (isBrowser && isLocalHostApi && window.location.hostname !== "localhost" && w
 export const api = axios.create({ baseURL: API_URL, timeout: 30000 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem(TOKEN_KEY) || localStorage.getItem(LEGACY_TOKEN_KEY);
+  const token = getStoredToken();
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });

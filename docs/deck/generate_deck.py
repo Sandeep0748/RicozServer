@@ -1,7 +1,7 @@
-"""RicozInvoice 12-page business deck (SMB customers) -> PDF.
+"""RicozServe 12-page business deck (SMB customers) -> PDF.
 
 Regenerable:  python docs/deck/generate_deck.py
-Output:       docs/RicozInvoice-Business-Deck.pdf  (A4 landscape)
+Output:       docs/RicozServe-Business-Deck.pdf  (A4 landscape)
 Brand:        #C4122F red, #111827 ink, Inter-like system sans (Helvetica).
 Figures labelled 'demo illustration' come from the verified Atlas test run.
 Pricing comes from server/src/config/plans.js (TRIAL_DAYS + PLANS).
@@ -26,13 +26,13 @@ AMBER = HexColor("#F59E0B")
 DARK = HexColor("#111827")
 WHITE = HexColor("#FFFFFF")
 
-OUT = "docs/RicozInvoice-Business-Deck.pdf"
+OUT = "docs/RicozServe-Business-Deck.pdf"
 
 
 def footer(c, n):
     c.setFont("Helvetica", 8)
     c.setFillColor(FAINT)
-    c.drawString(M, 26, "RicozInvoice  -  Billing, without the chaos")
+    c.drawString(M, 26, "RicozServe  -  Billing, without the chaos")
     c.drawRightString(W - M, 26, f"{n} / 12")
 
 
@@ -111,7 +111,7 @@ def p1_cover(c):
     c.drawCentredString(M + 28, H - 130 + 12, "R")
     c.setFillColor(INK)
     c.setFont("Helvetica-Bold", 20)
-    c.drawString(M + 68, H - 102, "RicozInvoice")
+    c.drawString(M + 68, H - 102, "RicozServe")
     c.setFont("Helvetica", 13)
     c.setFillColor(MUTED)
     c.drawString(M + 68, H - 122, "Billing, without the chaos")
@@ -415,8 +415,8 @@ def p12_cta(c):
     c.drawCentredString(M + 140, 168, "Create your workspace  >")
     c.setFillColor(WHITE)
     c.setFont("Helvetica", 11)
-    c.drawString(M, 118, "Contact: hello@ricozinvoice.example   |   Demo: /dashboard")
-    c.drawString(M, 100, "RicozInvoice  -  Billing, without the chaos")
+    c.drawString(M, 118, "Contact: hello@ricozserve.example   |   Demo: /dashboard")
+    c.drawString(M, 100, "RicozServe  -  Billing, without the chaos")
     c.setFont("Helvetica", 8)
     c.drawRightString(W - M, 26, "12 / 12")
 
@@ -425,8 +425,8 @@ def build():
     import os
     os.makedirs("docs", exist_ok=True)
     c = canvas.Canvas(OUT, pagesize=landscape(A4))
-    c.setTitle("RicozInvoice - Business Deck (Customers)")
-    c.setAuthor("RicozInvoice")
+    c.setTitle("RicozServe - Business Deck (Customers)")
+    c.setAuthor("RicozServe")
     for fn in (p1_cover, p2_problem, p3_solution, p4_journey, p5_sell, p6_paid,
                p7_costs, p8_compliance, p9_glance, p10_trust, p11_pricing, p12_cta):
         c.setFillColor(BG)

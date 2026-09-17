@@ -12,6 +12,8 @@ const userSchema = new mongoose.Schema(
     // Optional only for backward compatibility — every new user gets one,
     // and seed.js backfills legacy docs into the default org.
     orgId: { type: mongoose.Schema.Types.ObjectId, ref: "Organization", index: true },
+    // Bumped by "Log out everywhere" — tokens carrying an older version stop working.
+    tokenVersion: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

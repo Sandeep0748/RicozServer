@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { body, validationResult } from "express-validator";
 import { isDbConnected } from "../config/db.js";
-import { protect } from "../middleware/auth.js";
+import { protect, requireRole } from "../middleware/auth.js";
 import { asyncHandler } from "../middleware/error.js";
 import Customer from "../models/Customer.js";
 import {
@@ -13,6 +13,7 @@ import {
   serializeGeneric, pageOf,
 } from "../utils/serialize.js";
 import { memory } from "../store/memoryStore.js";
+import { getOrgSettings, saveOrgSettingsSection, nextDocNumber } from "../utils/settings.js";
 
 const router = Router();
 router.use(protect);
@@ -140,23 +141,24 @@ router.post("/invoices", [body("customer").notEmpty().withMessage("Customer requ
   const cust = await resolveCustomer(orgId, req.body.customer);
   const lines = Array.isArray(req.body.lines) && req.body.lines.length ? req.body.lines : [{ name: "Service", qty: 1, rate: Number(req.body.total) || 0, taxRate: 0 }];
   const t = totals(lines);
+  const inv = await getOrgSettings(orgId).catch(() => null);
+  const dflt = inv?.invoice || {};
   const base = {
     ...cust, lines, ...t, paid: 0,
     issueDate: req.body.issueDate || new Date(), dueDate: req.body.dueDate || new Date(Date.now() + 30 * 864e5),
-    status: "sent", paymentTerms: req.body.paymentTerms || "Net 30", notes: req.body.notes || "",
+    status: "sent", paymentTerms: req.body.paymentTerms || dflt.paymentTerms || "Net 30", notes: req.body.notes ?? dflt.notes ?? "",
     orgId, payments: [],
   };
   if (isDbConnected()) {
     const count = await Invoice.countDocuments({ orgId });
-    const doc = await Invoice.create({ ...base, number: nextNum("INV", count + 1) });
-    notify(orgId, "Invoice created", `${doc.number} for ${doc.customerName} — ₹${(doc.total / 100).toFixed(2)}`, "/invoices");
+    const doc = await Invoice.create({ ...base, number: nextDocNumber(dflt.prefix, dflt.startNumber, count) });
+    notify(orgId, "Invoice created", `${doc.number} for ${doc.customerName} — ₹${(doc.total / 100).toFixed(2)}`, "/invoices", "invoiceSent");
     return res.status(201).json(serializeInvoice(doc));
   }
-  const seq = (memory.seq.invoice = (memory.seq.invoice || 1));
-  memory.seq.invoice += 1;
-  const doc = { id: `inv-${Date.now()}`, ...base, number: nextNum("INV", seq), createdAt: new Date(), updatedAt: new Date() };
+  const existing = memList("invoices", orgId).length;
+  const doc = { id: `inv-${Date.now()}`, ...base, number: nextDocNumber(dflt.prefix, dflt.startNumber, existing), createdAt: new Date(), updatedAt: new Date() };
   memory.invoices.unshift(doc);
-  memNotify(orgId, "Invoice created", `${doc.number} for ${doc.customerName}`, "/invoices");
+  notify(orgId, "Invoice created", `${doc.number} for ${doc.customerName}`, "/invoices", "invoiceSent");
   res.status(201).json(serializeInvoice(doc));
 }));
 router.get("/invoices/:id", asyncHandler(async (req, res) => {
@@ -181,6 +183,7 @@ router.post("/invoices/:id/pay", [body("amount").isInt({ min: 1 }).withMessage("
     d.paid = (d.paid || 0) + Number(amount);
     d.status = d.paid >= d.total ? "paid" : "partial";
     await d.save();
+    notify(orgId, "Payment received", `₹${(Number(amount) / 100).toFixed(2)} on ${d.number} (${d.customerName})`, `/invoices/${d._id || d.id}`, "paymentReceived");
     return res.json(serializeInvoice(d));
   }
   const d = memList("invoices", orgId).find((x) => x.id === req.params.id || x.number === req.params.id);
@@ -189,6 +192,7 @@ router.post("/invoices/:id/pay", [body("amount").isInt({ min: 1 }).withMessage("
   d.paid = (d.paid || 0) + Number(amount);
   d.status = d.paid >= d.total ? "paid" : "partial";
   d.updatedAt = new Date();
+  notify(orgId, "Payment received", `₹${(Number(amount) / 100).toFixed(2)} on ${d.number} (${d.customerName})`, `/invoices/${d.id}`, "paymentReceived");
   res.json(serializeInvoice(d));
 }));
 
@@ -240,20 +244,23 @@ router.post("/estimates/:id/convert", asyncHandler(async (req, res) => {
   if (isDbConnected()) {
     const e = (await Estimate.findOne({ _id: req.params.id, orgId }).catch(() => null)) || (await Estimate.findOne({ number: req.params.id, orgId }));
     if (!e) return res.status(404).json({ error: "Estimate not found" });
+    const inv0 = await getOrgSettings(orgId).catch(() => null);
+    const dd = inv0?.invoice || {};
     const count = await Invoice.countDocuments({ orgId });
     const inv = await Invoice.create({
       orgId, customer: e.customer, customerName: e.customerName, company: e.company,
       lines: e.lines, subtotal: e.subtotal, taxTotal: e.taxTotal, total: e.total, paid: 0,
-      status: "sent", number: nextNum("INV", count + 1), dueDate: new Date(Date.now() + 30 * 864e5),
+      status: "sent", number: nextDocNumber(dd.prefix, dd.startNumber, count), dueDate: new Date(Date.now() + 30 * 864e5),
     });
     e.status = "converted"; e.convertedTo = inv._id; await e.save();
     return res.status(201).json(serializeInvoice(inv));
   }
   const e = memList("estimates", orgId).find((x) => x.id === req.params.id || x.number === req.params.id);
   if (!e) return res.status(404).json({ error: "Estimate not found" });
-  const seq = memory.seq.invoice = (memory.seq.invoice || 1);
-  memory.seq.invoice += 1;
-  const inv = { id: `inv-${Date.now()}`, orgId, customer: e.customer, customerName: e.customerName, company: e.company, lines: e.lines, subtotal: e.subtotal, taxTotal: e.taxTotal, total: e.total, paid: 0, status: "sent", number: nextNum("INV", seq), issueDate: new Date(), dueDate: new Date(Date.now() + 30 * 864e5), paymentTerms: "Net 30", notes: "", payments: [], createdAt: new Date(), updatedAt: new Date() };
+  const inv0m = await getOrgSettings(orgId).catch(() => null);
+  const ddm = inv0m?.invoice || {};
+  const existingInv = memList("invoices", orgId).length;
+  const inv = { id: `inv-${Date.now()}`, orgId, customer: e.customer, customerName: e.customerName, company: e.company, lines: e.lines, subtotal: e.subtotal, taxTotal: e.taxTotal, total: e.total, paid: 0, status: "sent", number: nextDocNumber(ddm.prefix, ddm.startNumber, existingInv), issueDate: new Date(), dueDate: new Date(Date.now() + 30 * 864e5), paymentTerms: "Net 30", notes: "", payments: [], createdAt: new Date(), updatedAt: new Date() };
   memory.invoices.unshift(inv);
   e.status = "converted"; e.convertedTo = inv.id; e.updatedAt = new Date();
   res.status(201).json(serializeInvoice(inv));
@@ -352,7 +359,15 @@ router.post("/notifications/read-all", asyncHandler(async (req, res) => {
 function memNotify(orgId, title, nbody, link) {
   memory.notifications.unshift({ id: `n-${Date.now()}`, orgId, title, body: nbody, type: "info", read: false, link: link || "", createdAt: new Date(), updatedAt: new Date() });
 }
-async function notify(orgId, title, nbody, link) {
+// type maps to a Notifications-settings toggle (invoiceSent, paymentReceived,
+// invoiceOverdue, teamActivity). Unknown types always notify.
+async function notify(orgId, title, nbody, link, type) {
+  try {
+    if (type) {
+      const s = await getOrgSettings(orgId);
+      if (s?.notifications && s.notifications[type] === false) return;
+    }
+  } catch { /* prefs unreadable — notify anyway */ }
   if (isDbConnected()) { await Notification.create({ orgId, title, body: nbody, link: link || "" }).catch(() => null); return; }
   memNotify(orgId, title, nbody, link);
 }
@@ -449,12 +464,86 @@ router.get("/team", asyncHandler(async (req, res) => {
 // ---------- SETTINGS ----------
 router.get("/settings", asyncHandler(async (req, res) => {
   const { default: Organization } = await import("../models/Organization.js");
+  const settings = await getOrgSettings(orgOf(req));
+  let organization = null;
   if (isDbConnected()) {
-    const org = await Organization.findById(orgOf(req));
-    return res.json({ organization: org ? org.toJSONSafe() : null, currency: "INR", taxDefaults: { gst: 18 }, paymentModes: ["UPI", "Card", "Netbanking", "Cash"] });
+    const org = await Organization.findById(orgOf(req)).catch(() => null);
+    organization = org ? org.toJSONSafe() : null;
+  } else {
+    organization = memory.orgs.find((o) => String(o.id) === String(orgOf(req))) || null;
   }
-  const org = memory.orgs.find((o) => String(o.id) === String(orgOf(req)));
-  res.json({ organization: org || null, currency: "INR", taxDefaults: { gst: 18 }, paymentModes: ["UPI", "Card", "Netbanking", "Cash"] });
+  return res.json({
+    organization,
+    ...settings,
+    // legacy keys (backward compatible)
+    currency: settings.invoice.currency || settings.business.currency || "INR",
+    taxDefaults: { gst: settings.invoice.defaultTax ?? 18 },
+    paymentModes: settings.paymentMethods,
+  });
 }));
+
+// PUT /api/settings — { section, data } (admin). Sections: business, invoice,
+// taxes (array), paymentMethods (array), notifications.
+router.put(
+  "/settings",
+  requireRole("admin"),
+  asyncHandler(async (req, res) => {
+    const { section, data } = req.body || {};
+    if (!section || data === undefined) return res.status(400).json({ error: "section and data required" });
+    try {
+      const saved = await saveOrgSettingsSection(orgOf(req), section, sanitizeSettings(section, data));
+      return res.json({ ok: true, settings: saved });
+    } catch (err) {
+      return res.status(err.status || 400).json({ error: err.message || "Could not save settings" });
+    }
+  })
+);
+
+function sanitizeSettings(section, data) {
+  const str = (v, max = 120) => String(v ?? "").slice(0, max);
+  const num = (v, fb = 0) => { const n = Number(v); return Number.isFinite(n) ? n : fb; };
+  if (section === "business") {
+    const d = data && typeof data === "object" ? data : {};
+    return {
+      name: str(d.name, 80), logoUrl: str(d.logoUrl, 300), email: str(d.email), phone: str(d.phone, 30),
+      website: str(d.website), businessType: str(d.businessType, 60), gstin: str(d.gstin, 30),
+      pan: str(d.pan, 30).toUpperCase(), currency: str(d.currency || "INR", 8).toUpperCase(),
+      timezone: str(d.timezone || "UTC", 40), dateFormat: str(d.dateFormat || "DD-MM-YYYY", 20),
+    };
+  }
+  if (section === "invoice") {
+    const d = data && typeof data === "object" ? data : {};
+    return {
+      currency: str(d.currency || "INR", 8).toUpperCase(),
+      paymentTerms: str(d.paymentTerms || "Net 30", 40),
+      prefix: (str(d.prefix || "INV", 12).toUpperCase() || "INV").replace(/[^A-Z0-9]/g, "") || "INV",
+      startNumber: Math.max(1, Math.floor(num(d.startNumber, 1)) || 1),
+      defaultTax: Math.min(100, Math.max(0, num(d.defaultTax, 0))),
+      notes: str(d.notes, 1000), terms: str(d.terms, 2000),
+    };
+  }
+  if (section === "taxes") {
+    if (!Array.isArray(data)) throw new Error("taxes must be an array");
+    return data.slice(0, 20).map((t) => ({
+      name: str(t?.name || "Tax", 60) || "Tax",
+      rate: Math.min(100, Math.max(0, num(t?.rate, 0))),
+    })).filter((t) => t.name);
+  }
+  if (section === "paymentMethods") {
+    if (!Array.isArray(data)) throw new Error("paymentMethods must be an array");
+    const list = data.map((m) => str(m, 40)).filter(Boolean).slice(0, 20);
+    if (!list.length) throw new Error("At least one payment method required");
+    return list;
+  }
+  if (section === "notifications") {
+    const d = data && typeof data === "object" ? data : {};
+    const b = (v) => v === true || v === "true" || v === 1;
+    return {
+      invoiceSent: b(d.invoiceSent ?? true), paymentReceived: b(d.paymentReceived ?? true),
+      invoiceOverdue: b(d.invoiceOverdue ?? true), teamActivity: b(d.teamActivity ?? true),
+    };
+  }
+  throw new Error("Unknown settings section");
+}
 
 export default router;
