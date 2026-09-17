@@ -29,8 +29,24 @@ SLATE = HexColor("#7E93A7")
 SLATE_D = HexColor("#6B8298")
 SLATE_L = HexColor("#E8EDF1")
 CHROME = HexColor("#F1F2F4")
+GRID = HexColor("#EEF0F4")
+PINK_LINE = HexColor("#F3C2C8")
 
 OUT = "docs/RicozServe-Business-Deck.pdf"
+
+
+def draw_grid(c, step=32):
+    """Faint invoice-grid like client .invoice-grid (#EEF0F4). Call after BG fill."""
+    c.setStrokeColor(GRID)
+    c.setLineWidth(0.7)
+    x = 0
+    while x <= W:
+        c.line(x, 0, x, H)
+        x += step
+    y = 0
+    while y <= H:
+        c.line(0, y, W, y)
+        y += step
 
 
 def footer(c, n):
@@ -93,9 +109,10 @@ def bullets(c, items, x, y, gap=22, size=12, bullet="--", bcolor=BRAND):
     return y
 
 
-def pill(c, x, y, w, h, text, fill=PINK, fg=BRAND, size=10):
+def pill(c, x, y, w, h, text, fill=PINK, fg=BRAND, size=10, stroke=None):
     c.setFillColor(fill)
-    c.setStrokeColor(LINE)
+    c.setStrokeColor(stroke if stroke is not None else (PINK_LINE if fill == PINK else LINE))
+    c.setLineWidth(0.8)
     c.roundRect(x, y, w, h, h / 2, fill=1, stroke=1)
     c.setFont("Helvetica-Bold", size)
     c.setFillColor(fg)
@@ -109,18 +126,7 @@ def p1_cover(c):
     # --- project UI background (light, matches client invoice-grid) ---
     c.setFillColor(BG)
     c.rect(0, 0, W, H, fill=1, stroke=0)
-    # grid lines like .invoice-grid (#EEF0F4, 44px -> ~32pt)
-    c.setStrokeColor(HexColor("#EEF0F4"))
-    c.setLineWidth(0.7)
-    step = 32
-    x = 0
-    while x <= W:
-        c.line(x, 0, x, H)
-        x += step
-    y = 0
-    while y <= H:
-        c.line(0, y, W, y)
-        y += step
+    draw_grid(c)
 
     # --- top bar: brand left, deck label right ---
     c.setFillColor(BRAND)
@@ -369,12 +375,17 @@ def p3_solution(c):
         "Every payment, expense and hour rolls into live reports.",
         "INR-first with paise-accurate totals and GST-ready taxes.",
     ], M, y, gap=26)
-    # module pills grid (right side)
+    # module pills grid (right side) - core money modules pink like P1 hero
+    CORE_MODS = {"Overview", "Invoices", "Estimates", "Recurring", "Customers", "Expenses"}
     px = M + 330
     for i, m in enumerate(mods):
         r, col = divmod(i, 3)
-        pill(c, px + col * 150, y - 40 - r * 38, 140, 28, m,
-             fill=WHITE, fg=INK, size=10)
+        if m in CORE_MODS:
+            pill(c, px + col * 150, y - 40 - r * 38, 140, 28, m,
+                 fill=PINK, fg=BRAND, size=10)
+        else:
+            pill(c, px + col * 150, y - 40 - r * 38, 140, 28, m,
+                 fill=WHITE, fg=INK, size=10)
     footer(c, 3)
 
 
@@ -497,7 +508,10 @@ def p8_compliance(c):
     tx = M + 360
     for i, t in enumerate(tabs):
         r, col = divmod(i, 4)
-        pill(c, tx + col * 96, y - 40 - r * 38, 88, 28, t, fill=WHITE, fg=INK, size=9)
+        if r == 0:  # first row pink like P1 hero
+            pill(c, tx + col * 96, y - 40 - r * 38, 88, 28, t, fill=PINK, fg=BRAND, size=9)
+        else:
+            pill(c, tx + col * 96, y - 40 - r * 38, 88, 28, t, fill=WHITE, fg=INK, size=9)
     footer(c, 8)
 
 
@@ -610,7 +624,7 @@ def p12_cta(c):
     c.drawCentredString(M + 140, 168, "Create your workspace  >")
     c.setFillColor(WHITE)
     c.setFont("Helvetica", 11)
-    c.drawString(M, 118, "Contact: hello@ricozserve.example   |   Demo: /dashboard")
+    c.drawString(M, 118, "Contact: hello@ricozserve.example   |   Demo: ricoz-server-three.vercel.app/dashboard")
     c.drawString(M, 100, "RicozServe  -  Billing, without the chaos")
     c.setFont("Helvetica", 8)
     c.drawRightString(W - M, 26, "12 / 12")
@@ -627,6 +641,7 @@ def build():
         c.setFillColor(BG)
         if fn is not p1_cover and fn is not p12_cta:
             c.rect(0, 0, W, H, fill=1, stroke=0)
+            draw_grid(c)  # unify with P1 dashboard grid
         fn(c)
         c.showPage()
     c.save()
