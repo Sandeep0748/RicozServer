@@ -88,11 +88,16 @@ def card(c, x, y, w, h, accent=BRAND, fill=WHITE):
     c.rect(x + 1, y + h - 8, w - 2, 4, fill=1, stroke=0)
 
 
-def card_title(c, x, y, label, value, sub=None):
+def card_title(c, x, y, label, value, sub=None, max_width=196):
+    from reportlab.pdfbase.pdfmetrics import stringWidth
     c.setFont("Helvetica-Bold", 9)
     c.setFillColor(MUTED)
     c.drawString(x, y, label.upper())
-    c.setFont("Helvetica-Bold", 22)
+    # auto-shrink long values so they never spill outside the card (P7 fix)
+    vsize = 22
+    while vsize > 13 and stringWidth(value, "Helvetica-Bold", vsize) > max_width:
+        vsize -= 1
+    c.setFont("Helvetica-Bold", vsize)
     c.setFillColor(INK)
     c.drawString(x, y - 30, value)
     if sub:
@@ -527,7 +532,7 @@ def p9_glance(c):
     x = M
     for label, val, accent in stats:
         card(c, x, y - 120, 172, 120, accent)
-        card_title(c, x + 14, y - 28, label, val)
+        card_title(c, x + 14, y - 28, label, val, max_width=172 - 28)
         x += 186
     # cash-flow mini bars
     c.setFont("Helvetica-Bold", 12)
