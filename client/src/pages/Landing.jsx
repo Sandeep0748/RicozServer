@@ -88,10 +88,10 @@ export default function Landing() {
   }
 
   return (
-    <div className="min-h-screen bg-white text-[#111827] antialiased">
+    <div className="min-h-screen w-full overflow-x-clip bg-white text-[#111827] antialiased">
       {/* ── Sticky header ── */}
       <header className="sticky top-0 z-50 border-b border-[#ECECF0] bg-white/90 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-2 px-5">
+        <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-2 px-4 sm:px-5">
           <Link to="/" className="flex items-center gap-2">
             <span className="grid h-8 w-8 place-items-center rounded-lg bg-[#C4122F] font-display text-[20px] text-white">R</span>
             <span className="text-[17px] font-extrabold">Ricoz<span className="font-semibold text-[#6B7280]">Serve</span></span>
@@ -101,13 +101,13 @@ export default function Landing() {
               <a key={n.href} href={n.href} className="transition hover:text-[#C4122F]">{n.label}</a>
             ))}
           </nav>
-          <span className="ml-auto hidden items-center gap-2 sm:flex">
+          <span className="ml-auto hidden items-center gap-2 lg:flex">
             <Link to="/login" className="rounded-lg border border-[#E2E8F0] px-4 py-2 text-sm font-semibold transition hover:border-[#C4122F] hover:text-[#C4122F]">Sign in</Link>
-            <Link to="/signup" className="inline-flex items-center gap-1.5 rounded-lg bg-[#C4122F] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#A50E27]">
+            <Link to="/signup" className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-[#C4122F] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#A50E27]">
               Create workspace <ArrowRight className="h-4 w-4" />
             </Link>
           </span>
-          <button onClick={() => setOpen(!open)} aria-label="Menu" className="ml-auto grid h-10 w-10 place-items-center rounded-lg border border-[#E2E8F0] lg:hidden">
+          <button onClick={() => setOpen(!open)} aria-label="Menu" aria-expanded={open} className="ml-auto grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#E2E8F0] lg:hidden">
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
@@ -129,15 +129,15 @@ export default function Landing() {
       {/* ── Hero ── */}
       <section className="relative overflow-hidden">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(600px_320px_at_50%_-60px,#FFE4E6,transparent)]" />
-        <div className="relative mx-auto grid max-w-[1200px] items-center gap-10 px-5 pb-12 pt-12 lg:grid-cols-2 lg:pt-20">
-          <div className="text-center lg:text-left">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-red-100 bg-[#FFF1F2] px-4 py-1.5 text-[13px] font-semibold text-[#C4122F]">
-              <Zap className="h-3.5 w-3.5" /> Billing, without the chaos · GST-ready
+        <div className="relative mx-auto grid max-w-[1200px] items-center gap-10 px-4 pb-20 pt-10 sm:px-5 sm:pb-16 sm:pt-12 lg:grid-cols-2 lg:pb-14 lg:pt-20">
+          <div className="min-w-0 text-center lg:text-left">
+            <span className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-red-100 bg-[#FFF1F2] px-3.5 py-1.5 text-[12px] font-semibold text-[#C4122F] sm:px-4 sm:text-[13px]">
+              <Zap className="h-3.5 w-3.5 shrink-0" /> <span className="truncate">Billing, without the chaos · GST-ready</span>
             </span>
-            <h1 className="mt-6 font-display text-[44px] leading-[1.02] tracking-[-0.02em] sm:text-[60px]">
-              RicozServe keeps<br />every rupee <em className="text-[#C4122F]">in focus.</em>
+            <h1 className="mt-6 text-balance font-display text-[clamp(2.25rem,9vw,2.9rem)] leading-[1.05] tracking-[-0.02em] sm:text-[clamp(2.75rem,6vw,3.75rem)] lg:text-[60px]">
+              RicozServe keeps<br className="hidden sm:block" />every rupee <em className="text-[#C4122F]">in focus.</em>
             </h1>
-            <p className="mx-auto mt-5 max-w-[560px] text-[16px] leading-[1.65] text-[#687385] lg:mx-0">
+            <p className="mx-auto mt-5 max-w-[560px] text-balance text-[15px] leading-[1.65] text-[#687385] sm:text-[16px] lg:mx-0">
               Estimates, invoices, recurring billing, expenses, projects, time tracking and reports — one calm workspace for Prince &amp; Co. and teams like yours.
             </p>
             <div className="mt-7 flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start">
@@ -154,77 +154,77 @@ export default function Landing() {
               <span className="inline-flex items-center gap-1.5"><Check className="h-4 w-4 text-green-600" /> INR paise-accurate</span>
             </div>
             {/* stats */}
-            <dl className="mx-auto mt-8 grid max-w-[520px] grid-cols-3 gap-3 lg:mx-0">
+            <dl className="mx-auto mt-8 grid max-w-[520px] grid-cols-3 gap-2 sm:gap-3 lg:mx-0">
               {[
                 ["12+", "Billing modules"],
                 ["100%", "GST-ready docs"],
                 ["1-click", "Estimate → Invoice"],
               ].map(([v, l]) => (
-                <div key={l} className="rounded-2xl border border-[#ECECF0] bg-[#F7F8FA] px-3 py-4 text-center lg:text-left">
-                  <dt className="font-display text-[22px] text-[#111827]">{v}</dt>
-                  <dd className="mt-0.5 text-[12.5px] font-medium text-[#687385]">{l}</dd>
+                <div key={l} className="min-w-0 rounded-2xl border border-[#ECECF0] bg-[#F7F8FA] px-2 py-3.5 text-center sm:px-3 sm:py-4 lg:text-left">
+                  <dt className="truncate font-display text-[19px] text-[#111827] sm:text-[22px]">{v}</dt>
+                  <dd className="mt-0.5 text-[11.5px] font-medium leading-snug text-[#687385] sm:text-[12.5px]">{l}</dd>
                 </div>
               ))}
             </dl>
           </div>
 
           {/* Product mockup — CSS only */}
-          <div className="relative mx-auto w-full max-w-[520px]">
-            <div className="absolute -inset-4 rounded-[28px] bg-gradient-to-br from-[#FFE4E6] via-white to-[#FFF1F2] blur-[1px]" />
-            <div className="relative overflow-hidden rounded-3xl border border-[#ECECF0] bg-white shadow-[0_30px_80px_-30px_rgba(17,24,39,0.35)]">
-              <div className="flex items-center gap-1.5 border-b border-[#ECECF0] bg-[#F7F8FA] px-4 py-3">
-                <span className="h-2.5 w-2.5 rounded-full bg-[#FCA5A5]" />
-                <span className="h-2.5 w-2.5 rounded-full bg-[#FCD34D]" />
-                <span className="h-2.5 w-2.5 rounded-full bg-[#86EFAC]" />
-                <span className="ml-3 rounded-md bg-white px-2.5 py-1 text-[12px] font-bold text-[#374151] ring-1 ring-[#ECECF0]">Overview · Prince &amp; Co.</span>
-                <span className="ml-auto rounded-full bg-green-50 px-2.5 py-1 text-[11px] font-bold text-green-700 ring-1 ring-green-100">● Live</span>
+          <div className="relative mx-auto mb-2 w-full min-w-0 max-w-[520px] sm:mb-0">
+            <div className="absolute -inset-3 rounded-[28px] bg-gradient-to-br from-[#FFE4E6] via-white to-[#FFF1F2] blur-[1px] sm:-inset-4" />
+            <div className="relative overflow-hidden rounded-2xl border border-[#ECECF0] bg-white shadow-[0_30px_80px_-30px_rgba(17,24,39,0.35)] sm:rounded-3xl">
+              <div className="flex min-w-0 items-center gap-1.5 border-b border-[#ECECF0] bg-[#F7F8FA] px-3 py-3 sm:px-4">
+                <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#FCA5A5]" />
+                <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#FCD34D]" />
+                <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#86EFAC]" />
+                <span className="ml-2 min-w-0 flex-1 truncate rounded-md bg-white px-2.5 py-1 text-[11px] font-bold text-[#374151] ring-1 ring-[#ECECF0] sm:ml-3 sm:flex-none sm:text-[12px]">Overview · Prince &amp; Co.</span>
+                <span className="ml-auto shrink-0 rounded-full bg-green-50 px-2.5 py-1 text-[11px] font-bold text-green-700 ring-1 ring-green-100">● Live</span>
               </div>
-              <div className="grid grid-cols-3 gap-2.5 p-4">
+              <div className="grid grid-cols-3 gap-2 p-3 sm:gap-2.5 sm:p-4">
                 {[
                   ["Billed", "₹4.86L", "+18%"],
                   ["Collected", "₹3.92L", "+12%"],
                   ["Overdue", "₹48.2K", "-6%"],
                 ].map(([k, v, d]) => (
-                  <div key={k} className="rounded-xl border border-[#ECECF0] bg-white p-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-[#9AA0AE]">{k}</p>
-                    <p className="mt-1 text-[16px] font-extrabold">{v}</p>
+                  <div key={k} className="min-w-0 rounded-xl border border-[#ECECF0] bg-white p-2.5 sm:p-3">
+                    <p className="truncate text-[10px] font-semibold uppercase tracking-wide text-[#9AA0AE] sm:text-[11px]">{k}</p>
+                    <p className="mt-1 truncate text-[14px] font-extrabold sm:text-[16px]">{v}</p>
                     <p className={`mt-0.5 text-[11px] font-bold ${d.startsWith("-") ? "text-green-600" : "text-[#C4122F]"}`}>{d} MoM</p>
                   </div>
                 ))}
               </div>
-              <div className="px-4 pb-2">
+              <div className="px-3 pb-2 sm:px-4">
                 <div className="rounded-xl border border-[#ECECF0] bg-[#F7F8FA] p-3">
-                  <div className="flex items-center justify-between">
-                    <p className="text-[12.5px] font-bold">Cash flow · last 6 mo</p>
-                    <p className="text-[11px] font-semibold text-[#6B7280]">UPI 62% · Card 25% · Cash 13%</p>
+                  <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                    <p className="text-[12px] font-bold sm:text-[12.5px]">Cash flow · last 6 mo</p>
+                    <p className="text-[10.5px] font-semibold text-[#6B7280] sm:text-[11px]">UPI 62% · Card 25% · Cash 13%</p>
                   </div>
-                  <div className="mt-3 flex h-20 items-end gap-1.5">
+                  <div className="mt-3 flex h-16 items-end gap-1 sm:h-20 sm:gap-1.5">
                     {[38, 55, 42, 68, 58, 82, 74, 95, 66, 88, 76, 98].map((h, i) => (
-                      <div key={i} style={{ height: `${h}%` }} className={`flex-1 rounded-t-md ${i >= 9 ? "bg-[#C4122F]" : "bg-[#F3B3BF]"}`} />
+                      <div key={i} style={{ height: `${h}%` }} className={`min-w-0 flex-1 rounded-t-md ${i >= 9 ? "bg-[#C4122F]" : "bg-[#F3B3BF]"}`} />
                     ))}
                   </div>
                 </div>
               </div>
-              <div className="space-y-2 p-4">
+              <div className="space-y-2 p-3 sm:p-4">
                 {[
                   ["INV-1042 · Sharma Traders", "₹28,400", "Paid"],
                   ["INV-1041 · Mehta Foods", "₹16,200", "Due in 3d"],
                   ["EST-089 · Accepted → Invoice", "₹52,000", "Convert"],
                 ].map(([t, amt, st]) => (
-                  <div key={t} className="flex items-center gap-3 rounded-xl border border-[#ECECF0] bg-white px-3 py-2.5">
-                    <span className="grid h-8 w-8 place-items-center rounded-lg bg-[#FFF1F2] text-[#C4122F]"><FileText className="h-4 w-4" /></span>
+                  <div key={t} className="flex items-center gap-2.5 rounded-xl border border-[#ECECF0] bg-white px-3 py-2.5 sm:gap-3">
+                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#FFF1F2] text-[#C4122F]"><FileText className="h-4 w-4" /></span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[13px] font-bold">{t}</span>
+                      <span className="block truncate text-[12.5px] font-bold sm:text-[13px]">{t}</span>
                       <span className="block text-[12px] text-[#687385]">{amt}</span>
                     </span>
-                    <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${st === "Paid" ? "bg-green-50 text-green-700" : st === "Convert" ? "bg-[#C4122F] text-white" : "bg-amber-50 text-amber-700"}`}>{st}</span>
+                    <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold ${st === "Paid" ? "bg-green-50 text-green-700" : st === "Convert" ? "bg-[#C4122F] text-white" : "bg-amber-50 text-amber-700"}`}>{st}</span>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="absolute -bottom-4 left-6 right-6 flex items-center gap-2 rounded-2xl border border-[#ECECF0] bg-white/95 px-4 py-3 shadow-lg backdrop-blur">
+            <div className="absolute -bottom-8 left-4 right-4 flex items-center gap-2 rounded-2xl border border-[#ECECF0] bg-white/95 px-3.5 py-3 shadow-lg backdrop-blur sm:-bottom-4 sm:left-6 sm:right-6 sm:px-4">
               <Sparkles className="h-4 w-4 shrink-0 text-[#C4122F]" />
-              <p className="text-[12.5px] font-medium text-[#4B5563]">Estimate accepted — converted to <b>INV-1043</b> in 1 click</p>
+              <p className="min-w-0 text-[12px] font-medium leading-snug text-[#4B5563] sm:text-[12.5px]">Estimate accepted — converted to <b>INV-1043</b> in 1 click</p>
             </div>
           </div>
         </div>
@@ -232,25 +232,25 @@ export default function Landing() {
 
       {/* ── Trust strip ── */}
       <section className="border-y border-[#ECECF0] bg-[#F7F8FA]">
-        <div className="mx-auto flex max-w-[1100px] flex-wrap items-center justify-center gap-x-8 gap-y-3 px-5 py-5 text-[13.5px] font-semibold text-[#5A6470]">
-          <span className="inline-flex items-center gap-2"><FileText className="h-4 w-4 text-[#C4122F]" /> Invoices + Estimates</span>
-          <span className="inline-flex items-center gap-2"><Users className="h-4 w-4 text-[#C4122F]" /> Customers + Team</span>
-          <span className="inline-flex items-center gap-2"><Receipt className="h-4 w-4 text-[#C4122F]" /> Expenses + Time</span>
-          <span className="inline-flex items-center gap-2"><BarChart3 className="h-4 w-4 text-[#C4122F]" /> Reports + Taxes</span>
-          <span className="inline-flex items-center gap-2"><Check className="h-4 w-4 text-[#C4122F]" /> INR-first, GST-ready</span>
+        <div className="mx-auto flex max-w-[1100px] flex-wrap items-center justify-center gap-x-6 gap-y-3 px-4 py-5 text-[13px] font-semibold text-[#5A6470] sm:gap-x-8 sm:px-5 sm:text-[13.5px]">
+          <span className="inline-flex items-center gap-2"><FileText className="h-4 w-4 shrink-0 text-[#C4122F]" /> Invoices + Estimates</span>
+          <span className="inline-flex items-center gap-2"><Users className="h-4 w-4 shrink-0 text-[#C4122F]" /> Customers + Team</span>
+          <span className="inline-flex items-center gap-2"><Receipt className="h-4 w-4 shrink-0 text-[#C4122F]" /> Expenses + Time</span>
+          <span className="inline-flex items-center gap-2"><BarChart3 className="h-4 w-4 shrink-0 text-[#C4122F]" /> Reports + Taxes</span>
+          <span className="inline-flex items-center gap-2"><Check className="h-4 w-4 shrink-0 text-[#C4122F]" /> INR-first, GST-ready</span>
         </div>
       </section>
 
       {/* ── Features ── */}
-      <section id="features" className="mx-auto max-w-[1100px] px-5 py-16">
+      <section id="features" className="mx-auto max-w-[1100px] px-4 py-12 sm:px-5 sm:py-16">
         <p className="text-center text-[12px] font-extrabold uppercase tracking-[0.18em] text-[#C4122F]">Everything in one place</p>
-        <h2 className="mx-auto mt-3 max-w-[640px] text-center font-display text-[32px] leading-tight sm:text-[42px]">
+        <h2 className="mx-auto mt-3 max-w-[640px] text-balance text-center font-display text-[28px] leading-tight sm:text-[42px]">
           A calm workspace for chaotic billing
         </h2>
-        <p className="mx-auto mt-3 max-w-[600px] text-center text-[15px] leading-relaxed text-[#687385]">
+        <p className="mx-auto mt-3 max-w-[600px] text-center text-[14.5px] leading-relaxed text-[#687385] sm:text-[15px]">
           Stop juggling Excel, WhatsApp reminders and Tally exports. RicozServe connects the full cycle.
         </p>
-        <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-8 grid gap-3 sm:mt-10 sm:grid-cols-2 lg:grid-cols-4">
           {features.map((f) => (
             <div key={f.title} className="group rounded-2xl border border-[#ECECF0] bg-white p-5 transition hover:-translate-y-1 hover:border-[#F3B3BF] hover:shadow-[0_20px_50px_-20px_rgba(196,18,47,0.35)]">
               <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#FFF1F2] text-[#C4122F] transition group-hover:bg-[#C4122F] group-hover:text-white">
@@ -264,12 +264,12 @@ export default function Landing() {
       </section>
 
       {/* ── How it works ── */}
-      <section id="how" className="bg-[#111827] py-16 text-white">
-        <div className="mx-auto max-w-[1100px] px-5">
+      <section id="how" className="bg-[#111827] py-12 text-white sm:py-16">
+        <div className="mx-auto max-w-[1100px] px-4 sm:px-5">
           <p className="text-[12px] font-extrabold uppercase tracking-[0.18em] text-[#F3B3BF]">How it works</p>
-          <div className="mt-3 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-            <h2 className="max-w-[520px] font-display text-[32px] leading-tight sm:text-[40px]">From customer to cash in four steps</h2>
-            <Link to="/signup" className="inline-flex items-center gap-2 self-start rounded-[10px] bg-white px-5 py-3 text-[14px] font-bold text-[#111827] transition hover:bg-[#FFE4E6] sm:self-auto">
+          <div className="mt-3 flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
+            <h2 className="max-w-[520px] text-balance font-display text-[28px] leading-tight sm:text-[40px]">From customer to cash in four steps</h2>
+            <Link to="/signup" className="inline-flex items-center justify-center gap-2 self-start rounded-[10px] bg-white px-5 py-3 text-[14px] font-bold text-[#111827] transition hover:bg-[#FFE4E6] lg:self-auto">
               Try it free <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -286,19 +286,19 @@ export default function Landing() {
       </section>
 
       {/* ── Plans / Models (franchise-style) ── */}
-      <section id="plans" className="mx-auto max-w-[1100px] px-5 py-16">
+      <section id="plans" className="mx-auto max-w-[1100px] px-4 py-12 sm:px-5 sm:py-16">
         <p className="text-center text-[12px] font-extrabold uppercase tracking-[0.18em] text-[#C4122F]">Plans · like choosing a format</p>
-        <h2 className="mx-auto mt-3 max-w-[620px] text-center font-display text-[32px] leading-tight sm:text-[42px]">
+        <h2 className="mx-auto mt-3 max-w-[620px] text-balance text-center font-display text-[28px] leading-tight sm:text-[42px]">
           Pick the size that fits your shop
         </h2>
-        <p className="mx-auto mt-3 max-w-[560px] text-center text-[15px] text-[#687385]">
+        <p className="mx-auto mt-3 max-w-[560px] text-center text-[14.5px] text-[#687385] sm:text-[15px]">
           Starter to test, Growth to run daily billing, Scale for teams — upgrade anytime, keep all data.
         </p>
-        <div className="mt-10 grid gap-4 lg:grid-cols-3">
+        <div className="mt-8 grid gap-4 sm:mt-10 sm:grid-cols-2 lg:grid-cols-3">
           {models.map((m) => (
-            <div key={m.name} className={`relative rounded-3xl border p-7 ${m.highlight ? "border-[#C4122F] bg-[#FFF1F2]/60 shadow-[0_24px_60px_-24px_rgba(196,18,47,0.45)]" : "border-[#ECECF0] bg-white"}`}>
+            <div key={m.name} className={`relative min-w-0 rounded-3xl border p-6 sm:p-7 ${m.highlight ? "border-[#C4122F] bg-[#FFF1F2]/60 shadow-[0_24px_60px_-24px_rgba(196,18,47,0.45)] sm:col-span-2 lg:col-span-1" : "border-[#ECECF0] bg-white"}`}>
               {m.highlight && (
-                <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-[#C4122F] px-4 py-1 text-[12px] font-bold text-white">MOST POPULAR</span>
+                <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#C4122F] px-4 py-1 text-[12px] font-bold text-white">MOST POPULAR</span>
               )}
               <p className="text-[13px] font-bold uppercase tracking-wide text-[#6B7280]">{m.tag}</p>
               <div className="mt-2 flex items-baseline gap-2">
@@ -326,13 +326,13 @@ export default function Landing() {
       </section>
 
       {/* ── Reviews ── */}
-      <section id="reviews" className="border-y border-[#ECECF0] bg-[#F7F8FA] py-16">
-        <div className="mx-auto max-w-[1100px] px-5">
+      <section id="reviews" className="border-y border-[#ECECF0] bg-[#F7F8FA] py-12 sm:py-16">
+        <div className="mx-auto max-w-[1100px] px-4 sm:px-5">
           <p className="text-center text-[12px] font-extrabold uppercase tracking-[0.18em] text-[#C4122F]">Loved by owners &amp; accountants</p>
-          <h2 className="mx-auto mt-3 max-w-[560px] text-center font-display text-[32px] sm:text-[40px]">Teams collect faster with RicozServe</h2>
-          <div className="mt-10 grid gap-4 md:grid-cols-3">
+          <h2 className="mx-auto mt-3 max-w-[560px] text-balance text-center font-display text-[28px] sm:text-[40px]">Teams collect faster with RicozServe</h2>
+          <div className="mt-8 grid gap-4 sm:mt-10 sm:grid-cols-2 lg:grid-cols-3">
             {testimonials.map((t) => (
-              <figure key={t.name} className="flex flex-col rounded-3xl border border-[#ECECF0] bg-white p-6">
+              <figure key={t.name} className="flex min-w-0 flex-col rounded-3xl border border-[#ECECF0] bg-white p-5 last:sm:col-span-2 last:lg:col-span-1 sm:p-6">
                 <div className="flex gap-1 text-[#C4122F]">
                   {[0, 1, 2, 3, 4].map((i) => <Star key={i} className="h-4 w-4 fill-current" />)}
                 </div>
