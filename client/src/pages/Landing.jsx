@@ -112,14 +112,14 @@ export default function Landing() {
           </button>
         </div>
         {open && (
-          <div className="border-t border-[#ECECF0] bg-white px-5 py-4 lg:hidden">
+          <div className="border-t border-[#ECECF0] bg-white px-4 py-4 sm:px-5 lg:hidden">
             <div className="flex flex-col gap-1">
               {NAV.map((n) => (
-                <a key={n.href} href={n.href} onClick={() => setOpen(false)} className="rounded-lg px-3 py-2.5 text-[15px] font-semibold text-[#374151] hover:bg-[#FFF1F2] hover:text-[#C4122F]">{n.label}</a>
+                <a key={n.href} href={n.href} onClick={() => setOpen(false)} className="rounded-lg px-3 py-3 text-[15px] font-semibold text-[#374151] hover:bg-[#FFF1F2] hover:text-[#C4122F]">{n.label}</a>
               ))}
-              <div className="mt-2 flex gap-2">
-                <Link to="/login" className="flex-1 rounded-lg border border-[#E2E8F0] px-4 py-2.5 text-center text-sm font-semibold">Sign in</Link>
-                <Link to="/signup" className="flex-1 rounded-lg bg-[#C4122F] px-4 py-2.5 text-center text-sm font-semibold text-white">Create workspace</Link>
+              <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+                <Link to="/login" className="flex-1 rounded-lg border border-[#E2E8F0] px-4 py-3 text-center text-sm font-semibold">Sign in</Link>
+                <Link to="/signup" className="flex-1 whitespace-nowrap rounded-lg bg-[#C4122F] px-4 py-3 text-center text-sm font-semibold text-white">Create workspace</Link>
               </div>
             </div>
           </div>
@@ -348,23 +348,23 @@ export default function Landing() {
       </section>
 
       {/* ── FAQ + Lead ── */}
-      <section id="faq" className="mx-auto grid max-w-[1100px] gap-10 px-5 py-16 lg:grid-cols-[1.2fr_0.8fr]">
-        <div>
+      <section id="faq" className="mx-auto grid max-w-[1100px] gap-8 px-4 py-12 sm:px-5 sm:py-16 lg:grid-cols-[1.2fr_0.8fr] lg:gap-10">
+        <div className="min-w-0">
           <p className="text-[12px] font-extrabold uppercase tracking-[0.18em] text-[#C4122F]">FAQ</p>
-          <h2 className="mt-3 font-display text-[32px] sm:text-[38px]">Questions, answered</h2>
+          <h2 className="mt-3 text-balance font-display text-[28px] sm:text-[38px]">Questions, answered</h2>
           <div className="mt-6 divide-y divide-[#ECECF0] rounded-2xl border border-[#ECECF0] bg-white">
             {faqs.map((f, i) => (
               <div key={f.q}>
-                <button onClick={() => setFaqOpen(faqOpen === i ? -1 : i)} className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left">
-                  <span className="text-[15px] font-bold">{f.q}</span>
+                <button onClick={() => setFaqOpen(faqOpen === i ? -1 : i)} aria-expanded={faqOpen === i} className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left sm:gap-4 sm:px-5">
+                  <span className="min-w-0 flex-1 text-[14.5px] font-bold sm:text-[15px]">{f.q}</span>
                   <ChevronDown className={`h-5 w-5 shrink-0 text-[#C4122F] transition ${faqOpen === i ? "rotate-180" : ""}`} />
                 </button>
-                {faqOpen === i && <p className="px-5 pb-5 text-[14px] leading-relaxed text-[#687385]">{f.a}</p>}
+                {faqOpen === i && <p className="px-4 pb-5 text-[14px] leading-relaxed text-[#687385] sm:px-5">{f.a}</p>}
               </div>
             ))}
           </div>
         </div>
-        <div className="h-fit rounded-3xl bg-[#111827] p-7 text-white lg:sticky lg:top-24">
+        <div className="h-fit min-w-0 rounded-2xl bg-[#111827] p-5 text-white sm:rounded-3xl sm:p-7 lg:sticky lg:top-24">
           <p className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-[12px] font-bold text-[#F3B3BF]"><Phone className="h-3.5 w-3.5" /> Get a callback</p>
           <h3 className="mt-4 font-display text-[28px] leading-tight">Want help setting up your billing?</h3>
           <p className="mt-2 text-[14px] leading-relaxed text-white/70">Leave your details — we’ll call back and create your workspace with you.</p>
@@ -376,9 +376,9 @@ export default function Landing() {
             </div>
           ) : (
             <form onSubmit={submitLead} className="mt-6 space-y-3">
-              <input value={lead.name} onChange={(e) => setLead({ ...lead, name: e.target.value })} required placeholder="Your name" className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-[14px] font-medium placeholder:text-white/40 focus:border-[#F3B3BF] focus:outline-none" />
-              <input value={lead.phone} onChange={(e) => setLead({ ...lead, phone: e.target.value })} required pattern="[0-9+ ]{10,15}" placeholder="Phone / WhatsApp" className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-[14px] font-medium placeholder:text-white/40 focus:border-[#F3B3BF] focus:outline-none" />
-              <input value={lead.city} onChange={(e) => setLead({ ...lead, city: e.target.value })} placeholder="City (e.g. Delhi)" className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-[14px] font-medium placeholder:text-white/40 focus:border-[#F3B3BF] focus:outline-none" />
+              <input value={lead.name} onChange={(e) => setLead({ ...lead, name: e.target.value })} required placeholder="Your name" autoComplete="name" className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-3.5 text-base font-medium placeholder:text-white/40 focus:border-[#F3B3BF] focus:outline-none sm:text-[14px]" />
+              <input value={lead.phone} onChange={(e) => setLead({ ...lead, phone: e.target.value })} required pattern="[0-9+ ]{10,15}" placeholder="Phone / WhatsApp" autoComplete="tel" inputMode="tel" className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-3.5 text-base font-medium placeholder:text-white/40 focus:border-[#F3B3BF] focus:outline-none sm:text-[14px]" />
+              <input value={lead.city} onChange={(e) => setLead({ ...lead, city: e.target.value })} placeholder="City (e.g. Delhi)" autoComplete="address-level2" className="w-full rounded-xl border border-white/10 bg-white/10 px-4 py-3.5 text-base font-medium placeholder:text-white/40 focus:border-[#F3B3BF] focus:outline-none sm:text-[14px]" />
               <button className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#C4122F] px-5 py-3.5 font-bold transition hover:bg-[#E11D48]">
                 Request callback <ArrowRight className="h-4 w-4" />
               </button>
@@ -393,13 +393,13 @@ export default function Landing() {
       </section>
 
       {/* ── Final CTA ── */}
-      <section className="mx-auto max-w-[1100px] px-5 pb-16">
-        <div className="relative overflow-hidden rounded-[28px] bg-[#C4122F] px-6 py-12 text-center text-white sm:px-12 sm:py-16">
+      <section className="mx-auto max-w-[1100px] px-4 pb-12 sm:px-5 sm:pb-16">
+        <div className="relative overflow-hidden rounded-2xl bg-[#C4122F] px-5 py-10 text-center text-white sm:rounded-[28px] sm:px-12 sm:py-16">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(500px_260px_at_50%_0%,rgba(255,255,255,0.25),transparent)]" />
-          <h2 className="relative mx-auto max-w-[620px] font-display text-[32px] leading-tight sm:text-[48px]">
+          <h2 className="relative mx-auto max-w-[620px] text-balance font-display text-[28px] leading-tight sm:text-[48px]">
             Send your first polished invoice today.
           </h2>
-          <p className="relative mx-auto mt-4 max-w-[520px] text-[15px] leading-relaxed text-white/85">
+          <p className="relative mx-auto mt-4 max-w-[520px] text-[14.5px] leading-relaxed text-white/85 sm:text-[15px]">
             Join Prince &amp; Co. and 200+ businesses running billing, expenses and reports on RicozServe.
           </p>
           <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -415,7 +415,7 @@ export default function Landing() {
 
       {/* ── Footer ── */}
       <footer className="border-t border-[#ECECF0] bg-[#F7F8FA]">
-        <div className="mx-auto grid max-w-[1100px] gap-8 px-5 py-12 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mx-auto grid max-w-[1100px] gap-8 px-4 py-10 sm:px-5 sm:py-12 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <div className="flex items-center gap-2">
               <span className="grid h-8 w-8 place-items-center rounded-lg bg-[#C4122F] font-display text-[20px] text-white">R</span>
@@ -442,16 +442,16 @@ export default function Landing() {
               <Link to="/dashboard" className="hover:text-[#C4122F]">Dashboard</Link>
             </div>
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="text-[13px] font-extrabold uppercase tracking-wide text-[#9AA0AE]">Contact</p>
             <div className="mt-3 space-y-2 text-[14px] font-medium text-[#374151]">
-              <p className="flex items-center gap-2"><Mail className="h-4 w-4 text-[#C4122F]" /> care@ricoz.in</p>
-              <p className="flex items-center gap-2"><MapPin className="h-4 w-4 text-[#C4122F]" /> Delhi, India</p>
+              <p className="flex min-w-0 items-center gap-2"><Mail className="h-4 w-4 shrink-0 text-[#C4122F]" /> <span className="break-all">care@ricoz.in</span></p>
+              <p className="flex items-center gap-2"><MapPin className="h-4 w-4 shrink-0 text-[#C4122F]" /> Delhi, India</p>
             </div>
           </div>
         </div>
         <div className="border-t border-[#ECECF0]">
-          <div className="mx-auto flex max-w-[1100px] flex-col items-center justify-between gap-2 px-5 py-5 text-[13px] text-[#9AA0AE] sm:flex-row">
+          <div className="mx-auto flex max-w-[1100px] flex-col items-center justify-between gap-1.5 px-4 py-5 text-center text-[12.5px] text-[#9AA0AE] sm:flex-row sm:px-5 sm:text-left sm:text-[13px]">
             <p>© 2026 RicozServe. All rights reserved.</p>
             <p>Reference-inspired by <span className="font-semibold text-[#6B7280]">ricoz.in/franchise</span> · DM Serif + DM Sans</p>
           </div>
